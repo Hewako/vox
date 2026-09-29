@@ -1,0 +1,4 @@
+py2app
+tkinterdnd2
+certifi
+pytest

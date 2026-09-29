@@ -1,4 +1,5 @@
-"""Мастер первого запуска: скачивание моделей Whisper."""
+"""First-run wizard: downloading Whisper models."""
+import ssl
 import time
 import threading
 import logging
@@ -30,6 +31,19 @@ VAD_MODEL_URL = (
 VAD_MODEL_SIZE_MB = 1
 
 
+def _ssl_context():
+    """
+    Same as in core.updater: prefer certifi's CA bundle so HTTPS works
+    on Python builds without system certificates.
+    """
+    try:
+        import certifi
+        return ssl.create_default_context(cafile=certifi.where())
+    except Exception as e:
+        logger.debug(f"certifi not available, using default: {e}")
+        return ssl.create_default_context()
+
+
 def has_any_model():
     if not MODELS_DIR.exists():
         return False
@@ -40,7 +54,7 @@ def has_any_model():
 
 
 def _fmt_eta(seconds):
-    """Секунды → '0:15' / '1:23' / '1:02:05'. Или '—' если неизвестно."""
+    """Seconds -> '0:15' / '1:23' / '1:02:05'. Or '—' if unknown."""
     if seconds is None or seconds <= 0 or seconds > 86400 * 2:
         return "—"
     seconds = int(seconds)
@@ -110,7 +124,7 @@ def show_wizard(root):
              bg=BG_CARD, fg=FG_SUBTLE,
              font=("Helvetica", 10)).pack(anchor="w", pady=(8, 0))
 
-    # ── Прогресс ─────────────────────────────────────────────
+    # ── Progress ─────────────────────────────────────────────
     prog_wrap = tk.Frame(win, bg=BG)
     prog_wrap.pack(fill="x", padx=24, pady=(0, 8))
 
@@ -124,7 +138,6 @@ def show_wizard(root):
                           font=("Helvetica", 11), anchor="w")
     status_lbl.pack(fill="x", pady=(6, 0))
 
-    # Отдельная строка для скорости и ETA
     stats_var = tk.StringVar(value="")
     tk.Label(prog_wrap, textvariable=stats_var,
              bg=BG, fg=ACCENT,
@@ -154,7 +167,8 @@ def show_wizard(root):
 
         try:
             req = Request(url, headers={"User-Agent": "Vox/1.0"})
-            with urlopen(req, timeout=30) as resp:
+            with urlopen(req, timeout=30,
+                          context=_ssl_context()) as resp:
                 total = int(resp.headers.get("Content-Length") or 0)
                 downloaded = 0
                 chunk_size = 1024 * 256
@@ -176,7 +190,7 @@ def show_wizard(root):
 
                             elapsed = time.time() - start_time
                             if elapsed > 0.5:
-                                speed = mb_done / elapsed  # MB/s
+                                speed = mb_done / elapsed
                                 remaining_mb = mb_total - mb_done
                                 eta = (remaining_mb / speed
                                        if speed > 0.01 else None)
@@ -291,7 +305,7 @@ def show_wizard(root):
 
 def _update_progress(prog_var, status_var, stats_var,
                      pct, mb_done, mb_total, speed_str, eta_str, label):
-    """Обновляет прогресс-бар, статус и строку со статистикой."""
+    """Update progress bar, status and stats line."""
     prog_var.set(pct)
     status_var.set(f"{label}: {pct:.1f}%")
     stats_var.set(
