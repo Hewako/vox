@@ -40,6 +40,17 @@ LOG_DIR.mkdir(parents=True, exist_ok=True)
 APP_SUPPORT.mkdir(parents=True, exist_ok=True)
 
 
+# ─── Автообновление ──────────────────────────────────────────
+# Ссылка на манифест версии в репозитории. Приложение раз в сутки
+# читает этот файл и сравнивает версию со своей.
+UPDATE_URL = (
+    "https://raw.githubusercontent.com/Hewako/vox/main/version.json"
+)
+
+# Как часто проверять обновления (в часах).
+UPDATE_CHECK_INTERVAL_HOURS = 24
+
+
 # ─── Бинарники ───────────────────────────────────────────────
 def _find_bin(name):
     p = which(name)

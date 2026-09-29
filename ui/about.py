@@ -1,5 +1,6 @@
 """Окно «О программе Vox»."""
 import sys
+import threading
 import platform
 import webbrowser
 import tkinter as tk
@@ -13,6 +14,7 @@ from i18n import t
 from ui.widgets import FlatButton
 from core.cache import cache_size_mb
 from core.utils import open_file, open_in_finder
+from core.updater import check_for_update
 
 
 LINKS = {
@@ -25,7 +27,7 @@ LINKS = {
 def show_about(root):
     win = tk.Toplevel(root)
     win.title(t("about_title"))
-    win.geometry("600x860")
+    win.geometry("600x900")
     win.resizable(False, False)
     win.configure(bg=BG)
 
@@ -106,21 +108,64 @@ def show_about(root):
                      bg=BG_CARD, fg=FG_DIM,
                      font=("Helvetica", 11)).pack(side="left")
 
-    # Кнопки
+    # ── Строка статуса обновления ────────────────────────────
+    update_status_var = tk.StringVar(value="")
+    update_status_lbl = tk.Label(win, textvariable=update_status_var,
+                                  bg=BG, fg=FG_SUBTLE,
+                                  font=("Helvetica", 10))
+
+    # ── Кнопки ───────────────────────────────────────────────
     btn_row = tk.Frame(win, bg=BG)
-    btn_row.pack(fill="x", padx=24, pady=(16, 18))
+    btn_row.pack(fill="x", padx=24, pady=(12, 22))
+
+    update_btn = FlatButton(
+        btn_row, t("about_btn_update"), None,
+        bg=BG_INPUT, hover=BORDER, fg=FG,
+        padx=14, pady=8,
+        font=("Helvetica", 11))
+    update_btn.pack(side="left")
+    update_status_lbl.pack(anchor="w", padx=24, pady=(6, 0))
+
+    def ui(fn):
+        root.after(0, fn)
+
+    def do_check():
+        update_btn.config(state="disabled")
+        ui(lambda: update_status_var.set(t("update_checking")))
+
+        def worker():
+            data = check_for_update()
+            if data is None:
+                ui(lambda: update_status_var.set(t("update_up_to_date")))
+                ui(lambda: update_btn.config(state="normal"))
+                return
+
+            ui(lambda: update_status_var.set(
+                t("update_available", v=data.get("version", "?"))))
+
+            def open_window():
+                from ui.updater_window import show_update_window
+                show_update_window(root, data,
+                                    on_later=lambda: update_btn.config(
+                                        state="normal"))
+
+            ui(open_window)
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    update_btn.command = do_check
 
     FlatButton(btn_row, t("about_btn_log"),
                lambda: open_file(LOG_FILE),
                bg=BG_INPUT, hover=BORDER, fg=FG,
                padx=14, pady=8,
-               font=("Helvetica", 11)).pack(side="left")
+               font=("Helvetica", 11)).pack(side="left", padx=(8, 0))
 
     FlatButton(btn_row, t("about_btn_models"),
                lambda: open_in_finder(MODELS_DIR),
                bg=BG_INPUT, hover=BORDER, fg=FG,
                padx=14, pady=8,
-               font=("Helvetica", 11)).pack(side="left", padx=8)
+               font=("Helvetica", 11)).pack(side="left", padx=(8, 0))
 
     FlatButton(btn_row, t("about_btn_close"),
                win.destroy,
