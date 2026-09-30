@@ -1,15 +1,15 @@
 """
 History window.
 
-Shows a list of past transcriptions grouped by date. Double-click
-opens the result file in Finder; right-click offers more actions.
-Layout uses a ttk.Treeview with the status icon in column #0.
+Shows a list of past transcriptions grouped by date. Built on a
+plain tk.Canvas instead of ttk.Treeview, because Tk 8.6 on macOS
+does not reliably render images in Treeview column #0.
 """
 import logging
 import tkinter as tk
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from tkinter import messagebox, ttk
+from tkinter import messagebox
 
 from PIL import Image, ImageTk
 
@@ -21,6 +21,7 @@ from config import (
     BORDER,
     DANGER,
     DANGER_HOVER,
+    SUCCESS,
     FG,
     FG_DIM,
     FG_SUBTLE,
@@ -36,10 +37,10 @@ logger = logging.getLogger(__name__)
 
 
 # ─── Geometry ────────────────────────────────────────────────
-WIN_W = 780
-WIN_H = 620
+WIN_W = 820
+WIN_H = 640
 
-ICON_SIZE = 16
+ICON_SIZE = 20
 _ASSETS = Path(__file__).parent.parent / "assets"
 
 
@@ -70,10 +71,7 @@ def _human_duration(seconds):
 
 
 def _group_label(ts):
-    """
-    Return a short human label for the group of an entry: Today,
-    Yesterday, or a date like '30 Sep' / '28 Sep 2025'.
-    """
+    """Return a short human label for the group of an entry."""
     try:
         d = date.fromtimestamp(float(ts))
     except Exception:
@@ -90,6 +88,22 @@ def _group_label(ts):
         return d.strftime("%-d %b")
     return d.strftime("%-d %b %Y")
 
+def _tint(img: Image.Image, rgb: tuple) -> Image.Image:
+    """
+    Replace the icon's RGB with a single color, keeping the original
+    alpha as the mask. Produces a monochrome icon in the target color.
+    """
+    img = img.convert("RGBA")
+    alpha = img.split()[-1]
+    solid = Image.new("RGBA", img.size, rgb + (255,))
+    solid.putalpha(alpha)
+    return solid
+
+
+def _hex_to_rgb(hex_color: str) -> tuple:
+    """'#30d158' -> (48, 209, 88)."""
+    h = hex_color.lstrip("#")
+    return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
 
 def _group_key(ts):
     """Stable sort/group key for an entry: 'YYYY-MM-DD'."""
@@ -111,12 +125,11 @@ def show_history_window(root, on_retry=None):
     """
     entries = history.list_entries()
 
-    # ── Build the window ─────────────────────────────────────
     win = tk.Toplevel(root)
     win.title(t("history_title"))
     win.geometry(f"{WIN_W}x{WIN_H}")
     win.resizable(True, True)
-    win.minsize(560, 400)
+    win.minsize(620, 420)
     win.configure(bg=BG)
     win.transient(root)
     win.grab_set()
@@ -126,7 +139,6 @@ def show_history_window(root, on_retry=None):
     y = root.winfo_rooty() + (root.winfo_height() - WIN_H) // 3
     win.geometry(f"{WIN_W}x{WIN_H}+{max(x, 40)}+{max(y, 40)}")
 
-    # Fonts — inherit font size preference from settings.
     from core.settings import load_settings
     font_size_key = load_settings().get("font_size", "medium")
     if font_size_key not in FONT_SIZE_ORDER:
@@ -135,31 +147,19 @@ def show_history_window(root, on_retry=None):
     f_small = get_font(font_size_key, "small")
     f_btn = get_font(font_size_key, "btn")
 
+    def close(event=None):
+        try:
+            win.grab_release()
+        except Exception:
+            pass
+        win.destroy()
+
     # ── Header ───────────────────────────────────────────────
     header = tk.Frame(win, bg=BG)
     header.pack(fill="x", padx=24, pady=(20, 4))
-
     tk.Label(header, text=t("history_title"),
              bg=BG, fg=FG,
              font=(f_ui[0], f_ui[1] + 8, "bold")).pack(anchor="w")
-
-    # ── Icons for status ─────────────────────────────────────
-    icon_ok = None
-    icon_err = None
-    try:
-        img_ok = Image.open(_ASSETS / "status_ok.png").convert("RGBA")
-        img_ok = img_ok.resize((ICON_SIZE, ICON_SIZE), Image.Resampling.LANCZOS)
-        icon_ok = ImageTk.PhotoImage(img_ok)
-
-        img_err = Image.open(_ASSETS / "status_error.png").convert("RGBA")
-        img_err = img_err.resize((ICON_SIZE, ICON_SIZE), Image.Resampling.LANCZOS)
-        icon_err = ImageTk.PhotoImage(img_err)
-    except Exception as e:
-        logger.warning(f"history: could not load status icons: {e}")
-
-    # Keep references so PhotoImages are not garbage-collected.
-    win._icon_ok = icon_ok
-    win._icon_err = icon_err
 
     # ── Empty state ──────────────────────────────────────────
     if not entries:
@@ -171,159 +171,135 @@ def show_history_window(root, on_retry=None):
 
         btn_row = tk.Frame(win, bg=BG)
         btn_row.pack(fill="x", padx=24, pady=(16, 20))
-
-        def close_empty(event=None):
-            try:
-                win.grab_release()
-            except Exception:
-                pass
-            win.destroy()
-
-        FlatButton(btn_row, t("history_close_btn"), close_empty,
+        FlatButton(btn_row, t("history_close_btn"), close,
                    bg=BG_INPUT, hover=BORDER, fg=FG,
                    padx=18, pady=10, font=f_btn).pack(side="right")
-        win.bind("<Escape>", close_empty)
-        win.protocol("WM_DELETE_WINDOW", close_empty)
+
+        win.bind("<Escape>", close)
+        win.protocol("WM_DELETE_WINDOW", close)
         win.lift()
         win.focus_force()
         return win
 
-    # ── Treeview ─────────────────────────────────────────────
-    tree_wrap = tk.Frame(win, bg=BG_CARD)
-    tree_wrap.pack(fill="both", expand=True, padx=24, pady=(12, 0))
+    # ── Icons ────────────────────────────────────────────────
+    icon_ok = None
+    icon_err = None
+    try:
+        ok_rgb = _hex_to_rgb(SUCCESS)     # green
+        err_rgb = _hex_to_rgb(DANGER)     # red
 
-    style = ttk.Style(win)
-    style.configure("History.Treeview",
-                    background=BG_CARD,
-                    fieldbackground=BG_CARD,
-                    foreground=FG,
-                    bordercolor=BG_CARD,
-                    rowheight=26,
-                    font=f_ui)
-    style.configure("History.Treeview.Heading",
-                    background=BG_CARD,
-                    foreground=FG_SUBTLE,
-                    borderwidth=0,
-                    font=(f_ui[0], f_ui[1] - 1))
-    style.map("History.Treeview",
-              background=[("selected", ACCENT)],
-              foreground=[("selected", "white")])
+        img_ok = Image.open(_ASSETS / "status_ok.png").convert("RGBA")
+        img_ok = img_ok.resize((ICON_SIZE, ICON_SIZE),
+                                Image.Resampling.LANCZOS)
+        img_ok = _tint(img_ok, ok_rgb)
+        icon_ok = ImageTk.PhotoImage(img_ok)
 
-    columns = ("name", "time", "duration", "language", "status")
-    tree = ttk.Treeview(tree_wrap, columns=columns,
-                        show="tree headings",
-                        style="History.Treeview",
-                        selectmode="browse")
-    tree.heading("#0", text="", anchor="w")
-    tree.column("#0", width=36, stretch=False, anchor="center")
-    tree.heading("name", text="", anchor="w")
-    tree.column("name", width=280, stretch=True, anchor="w")
-    tree.heading("time", text="", anchor="w")
-    tree.column("time", width=70, stretch=False, anchor="w")
-    tree.heading("duration", text="", anchor="w")
-    tree.column("duration", width=80, stretch=False, anchor="w")
-    tree.heading("language", text="", anchor="w")
-    tree.column("language", width=100, stretch=False, anchor="w")
-    tree.heading("status", text="", anchor="w")
-    tree.column("status", width=90, stretch=False, anchor="w")
+        img_err = Image.open(_ASSETS / "status_error.png").convert("RGBA")
+        img_err = img_err.resize((ICON_SIZE, ICON_SIZE),
+                                  Image.Resampling.LANCZOS)
+        img_err = _tint(img_err, err_rgb)
+        icon_err = ImageTk.PhotoImage(img_err)
 
-    # Scrollbar
-    sb = tk.Scrollbar(tree_wrap, command=tree.yview,
-                      bd=0, relief="flat",
-                      bg=BG_CARD, troughcolor=BG_CARD,
-                      activebackground=BORDER,
-                      highlightthickness=0, width=10)
-    sb.pack(side="right", fill="y")
-    tree.config(yscrollcommand=sb.set)
-    tree.pack(fill="both", expand=True)
+        logger.info(f"history: loaded status icons at {ICON_SIZE}px")
+    except Exception as e:
+        logger.warning(f"history: could not load status icons: {e}")
 
-    # ── Populate ─────────────────────────────────────────────
-    # Group entries by date. Entries are already newest-first.
-    groups = {}
-    for e in entries:
-        key = _group_key(e.get("finished_at"))
-        groups.setdefault(key, []).append(e)
+    win._icon_ok = icon_ok
+    win._icon_err = icon_err
 
-    # Insert group parents and children.
-    for key in sorted(groups.keys(), reverse=True):
-        group_entries = groups[key]
-        label = _group_label(group_entries[0].get("finished_at"))
-        parent_id = f"group:{key}"
+    # ── Scrollable area ──────────────────────────────────────
+    main = tk.Frame(win, bg=BG_CARD)
+    main.pack(fill="both", expand=True, padx=24, pady=(12, 0))
 
-        tree.insert("", "end", iid=parent_id, text="",
-                    values=(label, "", "", "", ""),
-                    tags=("group",))
-        for e in group_entries:
-            eid = e.get("id", "")
-            name = Path(e.get("source", "")).name or "—"
+    canvas = tk.Canvas(main, bg=BG_CARD, highlightthickness=0, bd=0)
+    scrollbar = tk.Scrollbar(main, orient="vertical", command=canvas.yview,
+                             bd=0, relief="flat",
+                             bg=BG_CARD, troughcolor=BG_CARD,
+                             activebackground=BORDER,
+                             highlightthickness=0, width=10)
+    canvas.configure(yscrollcommand=scrollbar.set)
 
-            status = e.get("status", "")
-            if status == "ok":
-                icon = icon_ok
-                status_text = ""
-            else:
-                icon = icon_err
-                status_text = e.get("error") or ""
+    scrollbar.pack(side="right", fill="y")
+    canvas.pack(side="left", fill="both", expand=True)
 
-            tree.insert(parent_id, "end", iid=eid,
-                        text=" ",
-                        image=icon if icon else "",
-                        values=(
-                            name,
-                            _human_time(e.get("finished_at")),
-                            _human_duration(e.get("duration")),
-                            e.get("language", "") or "",
-                            status_text,
-                        ))
+    inner = tk.Frame(canvas, bg=BG_CARD)
+    inner_id = canvas.create_window((0, 0), window=inner, anchor="nw")
 
-        tree.item(parent_id, open=True)
+    def update_scrollregion(event=None):
+        canvas.configure(scrollregion=canvas.bbox("all"))
 
-    # Style: group rows are dim, dimmed-italic.
-    tree.tag_configure("group", foreground=FG_DIM,
-                       font=(f_ui[0], f_ui[1] - 1, "italic"))
+    def on_canvas_resize(event):
+        canvas.itemconfig(inner_id, width=event.width)
 
-    # ── Entry lookup ─────────────────────────────────────────
-    by_id = {e.get("id"): e for e in entries if e.get("id")}
+    inner.bind("<Configure>", update_scrollregion)
+    canvas.bind("<Configure>", on_canvas_resize)
 
-    def _selected_entry():
-        sel = tree.selection()
-        if not sel:
-            return None
-        iid = sel[0]
-        if iid.startswith("group:"):
-            return None
-        return by_id.get(iid)
+    def on_mousewheel(event):
+        if event.delta == 0:
+            return
+        step = -1 if event.delta > 0 else 1
+        canvas.yview_scroll(step, "units")
+
+    win.bind("<MouseWheel>", on_mousewheel)
+
+    # ── State ────────────────────────────────────────────────
+    entry_by_id = {e.get("id"): e for e in entries if e.get("id")}
+    # iid -> [(widget, default_bg, default_fg_or_None), ...]
+    row_widgets = {}
+    # iid -> top-level Frame
+    row_frames = {}
+    selected_id = [None]
+
+    def _paint_bg(widget, color):
+        try:
+            widget.config(bg=color)
+        except tk.TclError:
+            pass
+
+    def _set_fg(widget, color):
+        if isinstance(widget, tk.Label) and color is not None:
+            try:
+                widget.config(fg=color)
+            except tk.TclError:
+                pass
+
+    def set_selected(iid):
+        # Restore previous selection
+        old = selected_id[0]
+        if old is not None and old in row_widgets:
+            for w, bg, fg in row_widgets[old]:
+                _paint_bg(w, bg)
+                _set_fg(w, fg)
+
+        selected_id[0] = iid
+
+        # Paint new selection
+        if iid is not None and iid in row_widgets:
+            for w, bg, fg in row_widgets[iid]:
+                _paint_bg(w, ACCENT)
+                if isinstance(w, tk.Label) and fg is not None:
+                    _set_fg(w, "white")
 
     # ── Actions ──────────────────────────────────────────────
-    def open_result(entry=None):
-        e = entry or _selected_entry()
-        if not e:
-            return
-        path = e.get("output", "")
+    def open_result(entry):
+        path = entry.get("output", "")
         if not path or not Path(path).exists():
             messagebox.showwarning("Vox", t("history_no_output"))
             return
         open_in_finder(Path(path))
 
-    def open_source(entry=None):
-        e = entry or _selected_entry()
-        if not e:
-            return
-        path = e.get("source", "")
+    def open_source(entry):
+        path = entry.get("source", "")
         if not path or not Path(path).exists():
             messagebox.showwarning("Vox", t("history_no_source"))
             return
         open_in_finder(Path(path))
 
-    def retry(entry=None):
-        e = entry or _selected_entry()
-        if not e:
-            return
-        src = e.get("source", "")
+    def retry(entry):
+        src = entry.get("source", "")
         if not src or not Path(src).exists():
             messagebox.showwarning("Vox", t("history_no_source"))
             return
-
         if on_retry is None:
             return
         try:
@@ -331,42 +307,26 @@ def show_history_window(root, on_retry=None):
         except Exception as ex:
             logger.error(f"history: retry callback failed: {ex}")
             return
-
         if started:
             close()
 
-    def delete_entry(entry=None):
-        e = entry or _selected_entry()
-        if not e:
-            return
+    def delete_entry(entry):
         if not messagebox.askyesno("Vox", t("history_delete_confirm")):
             return
-        history.delete(e.get("id", ""))
-        tree.delete(e.get("id", ""))
+        history.delete(entry.get("id", ""))
+        iid = entry.get("id")
+        f = row_frames.pop(iid, None)
+        row_widgets.pop(iid, None)
+        if f is not None:
+            f.destroy()
+        if not row_frames:
+            for w in inner.winfo_children():
+                w.destroy()
+            tk.Label(inner, text=t("history_empty"),
+                     bg=BG_CARD, fg=FG_SUBTLE,
+                     font=(f_ui[0], f_ui[1] + 2)).pack(pady=40)
 
-    def close(event=None):
-        try:
-            win.grab_release()
-        except Exception:
-            pass
-        win.destroy()
-
-    # ── Double-click and right-click ─────────────────────────
-    def on_double(event):
-        iid = tree.identify_row(event.y)
-        if not iid or iid.startswith("group:"):
-            return
-        open_result(by_id.get(iid))
-
-    def show_context_menu(event):
-        iid = tree.identify_row(event.y)
-        if not iid or iid.startswith("group:"):
-            return
-        tree.selection_set(iid)
-        entry = by_id.get(iid)
-        if not entry:
-            return
-
+    def show_context_menu(event, entry):
         menu = tk.Menu(win, tearoff=0,
                        bg=BG_CARD, fg=FG,
                        activebackground=ACCENT, activeforeground="white",
@@ -385,9 +345,112 @@ def show_history_window(root, on_retry=None):
         finally:
             menu.grab_release()
 
-    tree.bind("<Double-1>", on_double)
-    tree.bind("<Button-2>", show_context_menu)   # macOS right-click
-    tree.bind("<Button-3>", show_context_menu)   # fallback
+    # ── Row builders ─────────────────────────────────────────
+    def add_group_header(label_text):
+        hdr = tk.Frame(inner, bg=BG_CARD)
+        hdr.pack(fill="x", pady=(14, 4))
+        tk.Label(hdr, text=label_text, bg=BG_CARD, fg=FG_DIM,
+                 font=(f_ui[0], f_ui[1] - 1, "italic"),
+                 anchor="w").pack(fill="x", padx=8)
+
+    def add_row(entry):
+        iid = entry.get("id")
+        status = entry.get("status", "")
+
+        icon = icon_ok if status == "ok" else icon_err
+        name = Path(entry.get("source", "")).name or "—"
+        time_str = _human_time(entry.get("finished_at"))
+        dur_str = _human_duration(entry.get("duration"))
+        lang_str = entry.get("language", "") or ""
+        status_str = "" if status == "ok" else (entry.get("error") or "")
+
+        row = tk.Frame(inner, bg=BG_CARD, cursor="hand2")
+        row.pack(fill="x", pady=1)
+        row_frames[iid] = row
+
+        # Icon
+        if icon is not None:
+            icon_lbl = tk.Label(row, image=icon, bg=BG_CARD, bd=0)
+            icon_lbl.image = icon
+        else:
+            icon_lbl = tk.Label(row, text="", bg=BG_CARD, width=2)
+        icon_lbl.pack(side="left", padx=(10, 8), pady=5)
+
+        # Name (flex)
+        name_lbl = tk.Label(row, text=name, bg=BG_CARD, fg=FG,
+                            font=f_ui, anchor="w")
+        name_lbl.pack(side="left", fill="x", expand=True, pady=5)
+
+        # Time (fixed width, chars)
+        time_lbl = tk.Label(row, text=time_str, bg=BG_CARD, fg=FG_SUBTLE,
+                            font=f_small, width=7, anchor="w")
+        time_lbl.pack(side="left", padx=(8, 0), pady=5)
+
+        # Duration
+        dur_lbl = tk.Label(row, text=dur_str, bg=BG_CARD, fg=FG_SUBTLE,
+                           font=f_small, width=7, anchor="w")
+        dur_lbl.pack(side="left", pady=5)
+
+        # Language
+        lang_lbl = tk.Label(row, text=lang_str, bg=BG_CARD, fg=FG_SUBTLE,
+                            font=f_small, width=12, anchor="w")
+        lang_lbl.pack(side="left", pady=5)
+
+        # Status code (red if error)
+        status_fg = DANGER if status_str else FG_SUBTLE
+        status_lbl = tk.Label(row, text=status_str, bg=BG_CARD, fg=status_fg,
+                              font=f_small, width=6, anchor="w")
+        status_lbl.pack(side="left", padx=(0, 10), pady=5)
+
+        row_widgets[iid] = [
+            (row,        BG_CARD, None),
+            (icon_lbl,   BG_CARD, None),
+            (name_lbl,   BG_CARD, FG),
+            (time_lbl,   BG_CARD, FG_SUBTLE),
+            (dur_lbl,    BG_CARD, FG_SUBTLE),
+            (lang_lbl,   BG_CARD, FG_SUBTLE),
+            (status_lbl, BG_CARD, status_fg),
+        ]
+
+        # Events
+        def on_click(event, _iid=iid):
+            set_selected(_iid)
+            return "break"
+
+        def on_double(event, _iid=iid):
+            set_selected(_iid)
+            e = entry_by_id.get(_iid)
+            if e:
+                open_result(e)
+            return "break"
+
+        def on_right(event, _entry=entry):
+            set_selected(_entry.get("id"))
+            show_context_menu(event, _entry)
+            return "break"
+
+        for w in (row, icon_lbl, name_lbl, time_lbl,
+                  dur_lbl, lang_lbl, status_lbl):
+            w.bind("<Button-1>", on_click)
+            w.bind("<Double-1>", on_double)
+            w.bind("<Button-2>", on_right)
+            w.bind("<Button-3>", on_right)
+
+    # ── Populate ─────────────────────────────────────────────
+    groups = {}
+    for e in entries:
+        key = _group_key(e.get("finished_at"))
+        groups.setdefault(key, []).append(e)
+
+    for key in sorted(groups.keys(), reverse=True):
+        group_entries = groups[key]
+        add_group_header(_group_label(group_entries[0].get("finished_at")))
+        for e in group_entries:
+            add_row(e)
+
+    # Set up scrollregion once the layout has settled.
+    inner.update_idletasks()
+    update_scrollregion()
 
     # ── Bottom buttons ───────────────────────────────────────
     def clear_all():
@@ -395,13 +458,9 @@ def show_history_window(root, on_retry=None):
                                     t("history_clear_confirm")):
             return
         n = history.clear()
-        # Remove all children from the tree.
-        for iid in list(tree.get_children("")):
-            tree.delete(iid)
         messagebox.showinfo(
             t("history_cleared_title"),
             t("history_cleared_text", n=n))
-        close()
         close()
 
     btn_row = tk.Frame(win, bg=BG)
