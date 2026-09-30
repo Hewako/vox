@@ -1,6 +1,7 @@
 """
 Vox configuration: version, paths, palette, constants.
 """
+
 import os
 from pathlib import Path
 from shutil import which
@@ -22,6 +23,8 @@ MODELS_DIR = HOME / "whisper-models"
 CACHE_DIR = HOME / ".whisper_cache"
 LOG_DIR = HOME / "Library" / "Logs"
 LOG_FILE = LOG_DIR / "Vox.log"
+LOG_MAX_BYTES = 1_000_000  # rotate when the log reaches ~1 MB
+LOG_BACKUP_COUNT = 5  # keep the last 5 rotated files
 APP_SUPPORT = HOME / "Library" / "Application Support" / "Vox"
 SETTINGS_FILE = APP_SUPPORT / "settings.json"
 HISTORY_FILE = APP_SUPPORT / "history.json"
@@ -41,9 +44,7 @@ APP_SUPPORT.mkdir(parents=True, exist_ok=True)
 
 
 # ─── Auto-update ─────────────────────────────────────────────
-UPDATE_URL = (
-    "https://raw.githubusercontent.com/Hewako/vox/main/version.json"
-)
+UPDATE_URL = "https://raw.githubusercontent.com/Hewako/vox/main/version.json"
 
 UPDATE_CHECK_INTERVAL_HOURS = 24
 
@@ -66,17 +67,17 @@ FFPROBE_BIN = _find_bin("ffprobe")
 
 
 # ─── Palette (dark) ──────────────────────────────────────────
-BG           = "#1e1e1e"
-BG_CARD      = "#252528"
-BG_INPUT     = "#2c2c2e"
-FG           = "#e8e8e8"
-FG_SUBTLE    = "#8e8e93"
-FG_DIM       = "#6c6c70"
-ACCENT       = "#0a84ff"
+BG = "#1e1e1e"
+BG_CARD = "#252528"
+BG_INPUT = "#2c2c2e"
+FG = "#e8e8e8"
+FG_SUBTLE = "#8e8e93"
+FG_DIM = "#6c6c70"
+ACCENT = "#0a84ff"
 ACCENT_HOVER = "#3395ff"
-BORDER       = "#3a3a3c"
-SUCCESS      = "#30d158"
-DANGER       = "#ff453a"
+BORDER = "#3a3a3c"
+SUCCESS = "#30d158"
+DANGER = "#ff453a"
 DANGER_HOVER = "#ff6961"
 
 
@@ -244,9 +245,9 @@ UI_LANG_NAME_TO_CODE = {v: k for k, v in UI_LANGUAGES.items()}
 
 # ─── Font sizes ──────────────────────────────────────────────
 FONT_SIZES = {
-    "small":  {"ui": 10, "title": 18, "small": 9,  "mono": 9,  "btn": 10},
+    "small": {"ui": 10, "title": 18, "small": 9, "mono": 9, "btn": 10},
     "medium": {"ui": 12, "title": 22, "small": 10, "mono": 10, "btn": 11},
-    "large":  {"ui": 14, "title": 26, "small": 12, "mono": 12, "btn": 13},
+    "large": {"ui": 14, "title": 26, "small": 12, "mono": 12, "btn": 13},
 }
 
 FONT_SIZE_ORDER = ["small", "medium", "large"]
@@ -267,6 +268,7 @@ SOUND_ERROR = "/System/Library/Sounds/Basso.aiff"
 def get_combo_values():
     """Values for transcription language combobox (with separators)."""
     from i18n import t
+
     values = [t("lang_auto"), t("sep_popular")]
     values.extend([name for name, _ in TOP_LANGUAGES])
     values.append(t("sep_all"))
@@ -277,6 +279,7 @@ def get_combo_values():
 def is_separator(value):
     """True if the value is a non-selectable separator."""
     from i18n import t
+
     return value in (t("sep_popular"), t("sep_all"))
 
 
@@ -295,14 +298,16 @@ def get_world_lang_names():
 # ─── Model helpers ───────────────────────────────────────────
 def get_model_choices():
     """Values for model combobox. Localized 'Auto' first."""
-    from i18n import t
     from core.models import find_models
+    from i18n import t
+
     return [t("model_auto")] + find_models()
 
 
 def model_to_internal(value):
     """Localized value -> internal."""
     from i18n import t
+
     if value == t("model_auto"):
         return "Авто"
     return value
@@ -311,6 +316,7 @@ def model_to_internal(value):
 def model_to_display(internal_value):
     """Internal value -> localized."""
     from i18n import t
+
     if internal_value == "Авто":
         return t("model_auto")
     return internal_value

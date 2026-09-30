@@ -2,30 +2,45 @@
 """
 Vox — точка входа.
 """
-import sys
+
 import logging
+import sys
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 # Добавляем папку проекта в sys.path, чтобы работали импорты
 sys.path.insert(0, str(Path(__file__).parent))
 
-from config import LOG_FILE, __version__
-from core.utils import get_duration
+from config import (
+    LOG_BACKUP_COUNT,
+    LOG_FILE,
+    LOG_MAX_BYTES,
+    __version__,
+)
 from core.models import pick_auto_model
 from core.transcriber import transcribe_one
-
+from core.utils import get_duration
 
 # ─── Логирование ─────────────────────────────────────────────
 # Configure the ROOT logger so every module in the project
 # (core.*, ui.*) ends up in the same file and on the same stream.
+# The file handler rotates at LOG_MAX_BYTES, keeping LOG_BACKUP_COUNT
+# rotated files next to Vox.log (Vox.log.1, Vox.log.2, ...).
 _root_logger = logging.getLogger()
 _root_logger.setLevel(logging.DEBUG)
 
-_fh = logging.FileHandler(LOG_FILE, encoding="utf-8")
+_fh = RotatingFileHandler(
+    LOG_FILE,
+    maxBytes=LOG_MAX_BYTES,
+    backupCount=LOG_BACKUP_COUNT,
+    encoding="utf-8",
+)
 _fh.setLevel(logging.DEBUG)
-_fh.setFormatter(logging.Formatter(
-    "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"))
+_fh.setFormatter(
+    logging.Formatter(
+        "%(asctime)s [%(levelname)s] %(name)s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+    )
+)
 _root_logger.addHandler(_fh)
 
 _sh = logging.StreamHandler()
@@ -61,9 +76,14 @@ def _collect_launch_files():
 def run_cli(media_path, lang="ru"):
     media = Path(media_path)
     model = pick_auto_model(get_duration(media))
-    out = transcribe_one(media, model, lang, use_vad=True,
-                         on_status=lambda m: logger.info(m),
-                         on_progress=lambda p: None)
+    out = transcribe_one(
+        media,
+        model,
+        lang,
+        use_vad=True,
+        on_status=lambda m: logger.info(m),
+        on_progress=lambda p: None,
+    )
     print(f"Готово: {out}")
 
 
@@ -80,4 +100,5 @@ if __name__ == "__main__":
 
     # GUI — обычный запуск или запуск с файлами из Dock
     from ui.window import run_gui
+
     run_gui(initial_files=launch_files)
