@@ -31,6 +31,7 @@ from config import (
     get_font,
     get_lang_name_by_code,
 )
+from core import history
 from core.cache import cache_size_mb, cleanup_cache, clear_all_cache
 from core.models import resolve_model
 from core.settings import load_settings
@@ -50,6 +51,7 @@ from core.utils import (
 )
 from i18n import t
 from ui.about import show_about
+from ui.history_window import show_history_window
 from ui.preview import show_preview
 from ui.settings_icon import SettingsIconPlayer
 from ui.settings_window import show_settings_window
@@ -497,10 +499,14 @@ def _build_ui(root):
         ui(_update)
 
     def start():
+        """
+        Start transcription. Returns True if the job was actually
+        launched, False otherwise.
+        """
         if not selected_files:
             messagebox.showwarning(t("msg_no_files_title"),
                                     t("msg_no_files_text"))
-            return
+            return False
 
         problems = check_deps()
         if problems:
@@ -520,11 +526,11 @@ def _build_ui(root):
                     missing.append({"name": p, "hint": ""})
 
             if show_missing_deps(root, missing):
-                start()
-            return
+                return start()
+            return False
 
         if not _validate_long_files(selected_files):
-            return
+            return False
 
         reset_cancel()
         set_running(True)
@@ -540,8 +546,7 @@ def _build_ui(root):
         detected["code"] = None
         detected["prob"] = None
 
-        # Read all live settings from settings.json — they are managed
-        # by the settings window and saved there on Apply.
+        # Read all live settings from settings.json.
         live = load_settings()
         raw_lang = live.get("lang", "English")
         language = LANGUAGES.get(raw_lang, "auto")
@@ -594,18 +599,23 @@ def _build_ui(root):
 
         def worker(media):
             try:
+                duration, _ = get_media_info(media)
+            except Exception:
+                duration = None
+
+            try:
                 out = process_one(media)
                 with progress_lock:
                     progress_map[media] = 1.0
                 ui(update_overall)
                 ui(lambda: update_current(1.0))
-                return (media, out, None)
+                return (media, out, None, duration)
             except Exception as e:
                 with progress_lock:
                     progress_map[media] = 1.0
                 ui(update_overall)
                 ui(lambda: update_current(1.0))
-                return (media, None, str(e))
+                return (media, None, str(e), duration)
 
         def runner():
             results = []
@@ -621,6 +631,34 @@ def _build_ui(root):
                             for r in results)
 
             cleanup_cache()
+
+            # Record every finished (non-cancelled) job in the history.
+            try:
+                for src, out, err, duration in results:
+                    if err and ("Отменено" in err or "Cancel" in err):
+                        continue
+                    lang_code = detected.get("code") or raw_lang
+                    if out:
+                        history.add(
+                            source=src,
+                            output=str(out),
+                            duration=duration,
+                            language=lang_code,
+                            model=chosen_model,
+                            status="ok",
+                        )
+                    else:
+                        history.add(
+                            source=src,
+                            output=None,
+                            duration=duration,
+                            language=lang_code,
+                            model=chosen_model,
+                            status="error",
+                            error=err,
+                        )
+            except Exception as e:
+                logger.error(f"history: write failed: {e}")
 
             def finish():
                 set_running(False)
@@ -675,6 +713,7 @@ def _build_ui(root):
             ui(finish)
 
         threading.Thread(target=runner, daemon=True).start()
+        return True
 
     start_btn = FlatButton(run_row, t("btn_transcribe"), start,
                             bg=ACCENT, hover=ACCENT_HOVER, fg="white",
@@ -703,6 +742,24 @@ def _build_ui(root):
             t("cache_cleared_title"),
             t("cache_cleared", n=n, before=before, after=after))
 
+    def act_history():
+        if is_running["value"]:
+            messagebox.showwarning(
+                "Vox",
+                "Cannot open history while a job is running.\n"
+                "Wait for it to finish or cancel.")
+            return
+
+        def retry_callback(source_path):
+            if not source_path or not Path(source_path).exists():
+                return False
+            if source_path not in selected_files:
+                selected_files.append(source_path)
+                refresh_list()
+            return bool(start())
+
+        show_history_window(root, on_retry=retry_callback)
+
     footer = tk.Frame(root, bg=BG)
     footer.pack(fill="x", padx=24, pady=(16, 14))
 
@@ -713,6 +770,11 @@ def _build_ui(root):
     FlatButton(footer, t("btn_clear_cache"), act_clear_cache,
                bg=BG_INPUT, hover=BORDER, fg=FG_SUBTLE,
                padx=12, pady=6, font=f_small).pack(side="right")
+
+    FlatButton(footer, t("btn_history"), act_history,
+               bg=BG_INPUT, hover=BORDER, fg=FG_SUBTLE,
+               padx=12, pady=6,
+               font=f_small).pack(side="right", padx=(0, 8))
 
     FlatButton(footer, t("btn_logs"), act_show_log,
                bg=BG_INPUT, hover=BORDER, fg=FG_SUBTLE,
@@ -739,7 +801,6 @@ def _build_ui(root):
                 return
             request_cancel()
             time.sleep(0.4)
-        # Settings are saved by the settings window; nothing to flush here.
         logger.info("Vox closing")
         root.destroy()
 
