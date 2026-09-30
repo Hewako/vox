@@ -1,5 +1,4 @@
 """Vox main window."""
-
 import logging
 import re
 import threading
@@ -26,21 +25,15 @@ from config import (
     LANGUAGES,
     LOG_FILE,
     SUCCESS,
-    UI_LANG_NAME_TO_CODE,
     UI_LANGUAGES,
     WARN_DURATION_MIN,
     __version__,
-    get_combo_values,
     get_font,
     get_lang_name_by_code,
-    get_model_choices,
-    is_separator,
-    model_to_display,
-    model_to_internal,
 )
 from core.cache import cache_size_mb, cleanup_cache, clear_all_cache
 from core.models import resolve_model
-from core.settings import load_settings, save_settings
+from core.settings import load_settings
 from core.state import request_cancel, reset_cancel
 from core.transcriber import transcribe_one
 from core.updater import check_for_update_if_due
@@ -59,25 +52,19 @@ from i18n import t
 from ui.about import show_about
 from ui.preview import show_preview
 from ui.settings_icon import SettingsIconPlayer
-from ui.widgets import FlatButton, FlatCheckbox
+from ui.settings_window import show_settings_window
+from ui.widgets import FlatButton
 
 logger = logging.getLogger(__name__)
 
 
 # ─── Window sizes ────────────────────────────────────────────
 WIN_BASE_W = 760
-WIN_BASE_H = 1020
+WIN_BASE_H = 720
 WIN_MIN_W = 680
-WIN_MIN_H = 900
-
-SETTINGS_COLS_WIDE = 800
-SETTINGS_COLS_NARROW = 2
+WIN_MIN_H = 640
 
 AUTO_UPDATE_DELAY_MS = 1500
-
-
-def _font_label(key):
-    return t(f"font_{key}")
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -86,7 +73,6 @@ def _font_label(key):
 def run_gui(initial_files=None):
     try:
         from tkinterdnd2 import DND_FILES, TkinterDnD
-
         root = TkinterDnD.Tk()
         dnd_const = DND_FILES
     except ImportError:
@@ -98,7 +84,6 @@ def run_gui(initial_files=None):
 
     try:
         from ui.splash import Splash
-
         splash = Splash(root, duration_ms=1200)
         root.update()
     except Exception as e:
@@ -157,7 +142,6 @@ def _auto_check_update(root):
         def open_window():
             try:
                 from ui.updater_window import show_update_window
-
                 show_update_window(root, data)
             except Exception as e:
                 logger.error(f"could not open update window: {e}")
@@ -216,20 +200,8 @@ def _build_ui(root):
         font_size_key = "medium"
 
     f_ui = get_font(font_size_key, "ui")
-    f_title = get_font(font_size_key, "title")
     f_small = get_font(font_size_key, "small")
-    f_mono = get_font(font_size_key, "mono")
     f_btn = get_font(font_size_key, "btn")
-
-    family = f_ui[0]
-    label_font = (family, f_ui[1] + 1, "bold")
-    combo_font = (family, f_ui[1])
-
-    root.option_add("*TCombobox*Listbox.font", combo_font)
-    root.option_add("*TCombobox*Listbox.background", BG_INPUT)
-    root.option_add("*TCombobox*Listbox.foreground", FG)
-    root.option_add("*TCombobox*Listbox.selectBackground", ACCENT)
-    root.option_add("*TCombobox*Listbox.selectForeground", "white")
 
     root.title(f"Vox {__version__}")
     root.minsize(WIN_MIN_W, WIN_MIN_H)
@@ -252,13 +224,6 @@ def _build_ui(root):
     detected = st["detected_lang"]
     dnd_ok = DND_FILES is not None
 
-    default_lang = settings.get("lang", "English")
-    if default_lang not in LANGUAGES:
-        default_lang = "English"
-    lang_var = tk.StringVar(value=default_lang)
-
-    ui_lang_var = tk.StringVar(value=UI_LANGUAGES[ui_lang_code])
-
     # ── Header ───────────────────────────────────────────────
     header = tk.Frame(root, bg=BG)
     header.pack(fill="x", padx=24, pady=(20, 4))
@@ -266,31 +231,25 @@ def _build_ui(root):
     title_block = tk.Frame(header, bg=BG)
     title_block.pack(side="left", anchor="n")
 
-    ttk.Label(title_block, text="Vox", style="Title.TLabel").pack(anchor="w")
-    ttk.Label(title_block, text=t("app_subtitle"), style="Subtle.TLabel").pack(
-        anchor="w", pady=(2, 0)
-    )
+    ttk.Label(title_block, text="Vox",
+              style="Title.TLabel").pack(anchor="w")
+    ttk.Label(title_block, text=t("app_subtitle"),
+              style="Subtle.TLabel").pack(anchor="w", pady=(2, 0))
 
-    right_block = tk.Frame(header, bg=BG)
-    right_block.pack(side="right", anchor="n")
+    # Right side: only the settings icon now.
+    settings_col = tk.Frame(header, bg=BG)
+    settings_col.pack(side="right", anchor="n")
 
-    # ── Settings icon column ─────────────────────────────────
-    settings_col = tk.Frame(right_block, bg=BG)
-    settings_col.pack(side="left", anchor="n", padx=(0, 24))
+    tk.Label(settings_col, text=t("settings_label"),
+             bg=BG, fg=FG_DIM,
+             font=f_small).pack(anchor="center", pady=(0, 4))
 
-    tk.Label(
-        settings_col, text=t("settings_label"), bg=BG, fg=FG_DIM, font=f_small
-    ).pack(anchor="center", pady=(0, 4))
-
-    settings_btn = tk.Label(
-        settings_col,
-        bg=BG,
-        bd=0,
-        highlightthickness=0,
-        padx=4,
-        pady=2,
-        cursor="pointinghand",
-    )
+    settings_btn = tk.Label(settings_col,
+                            bg=BG,
+                            bd=0,
+                            highlightthickness=0,
+                            padx=4, pady=2,
+                            cursor="pointinghand")
     settings_btn.pack(anchor="center")
 
     settings_player = SettingsIconPlayer(root, settings_btn)
@@ -303,59 +262,23 @@ def _build_ui(root):
         settings_btn.config(bg=BG)
 
     def on_settings_click(event):
+        if is_running["value"]:
+            messagebox.showwarning(
+                "Vox",
+                "Cannot open settings while a job is running.\n"
+                "Wait for it to finish or cancel.")
+            return
         settings_player.play_once()
-        logger.info("settings icon clicked (window not implemented yet)")
+
+        def apply_and_rebuild():
+            _rebuild_ui(root)
+            _autosize_window(root)
+
+        show_settings_window(root, on_apply=apply_and_rebuild)
 
     settings_btn.bind("<Enter>", on_settings_enter)
     settings_btn.bind("<Leave>", on_settings_leave)
     settings_btn.bind("<Button-1>", on_settings_click)
-
-    # ── Language column ──────────────────────────────────────
-    lang_col = tk.Frame(right_block, bg=BG)
-    lang_col.pack(side="left", anchor="n")
-
-    tk.Label(lang_col, text=t("ui_lang_label"), bg=BG, fg=FG_DIM, font=f_small).pack(
-        anchor="e", pady=(0, 4)
-    )
-
-    ui_lang_combo = ttk.Combobox(
-        lang_col,
-        textvariable=ui_lang_var,
-        values=list(UI_LANGUAGES.values()),
-        state="readonly",
-        width=16,
-        font=combo_font,
-    )
-    ui_lang_combo.pack(anchor="e")
-
-    def on_ui_lang_change(event=None):
-        if is_running["value"]:
-            messagebox.showwarning(
-                "Vox",
-                "Cannot change language while a job is running.\n"
-                "Wait for it to finish or cancel.",
-            )
-            ui_lang_var.set(UI_LANGUAGES[i18n.get_lang()])
-            return
-
-        code = UI_LANG_NAME_TO_CODE.get(ui_lang_var.get(), "en")
-
-        s = load_settings()
-        s["ui_lang"] = code
-        s["lang"] = lang_var.get()
-        s["model"] = model_to_internal(model_var.get())
-        s["vad"] = vad_var.get()
-        s["cache"] = cache_var.get()
-        s["srt"] = srt_var.get()
-        s["sound_on_done"] = sound_var.get()
-        s["workers"] = workers_var.get()
-        s["font_size"] = font_size_key
-        save_settings(s)
-
-        i18n.set_lang(code)
-        root.after_idle(lambda: _rebuild_ui(root))
-
-    ui_lang_combo.bind("<<ComboboxSelected>>", on_ui_lang_change)
 
     # ── Files card ───────────────────────────────────────────
     files_card = tk.Frame(root, bg=BG_CARD)
@@ -364,40 +287,25 @@ def _build_ui(root):
     files_inner = tk.Frame(files_card, bg=BG_CARD)
     files_inner.pack(fill="both", expand=True, padx=16, pady=16)
 
-    ttk.Label(files_inner, text=t("section_files"), style="Section.TLabel").pack(
-        anchor="w"
-    )
+    ttk.Label(files_inner, text=t("section_files"),
+              style="Section.TLabel").pack(anchor="w")
 
     list_wrap = tk.Frame(files_inner, bg=BG_INPUT)
     list_wrap.pack(fill="both", expand=True, pady=(10, 10))
 
     listbox = tk.Listbox(
-        list_wrap,
-        height=6,
-        selectmode=tk.EXTENDED,
-        bg=BG_INPUT,
-        fg=FG,
-        selectbackground=ACCENT,
-        selectforeground="white",
-        bd=0,
-        relief="flat",
-        highlightthickness=0,
-        font=f_ui,
-        activestyle="none",
-    )
+        list_wrap, height=6, selectmode=tk.EXTENDED,
+        bg=BG_INPUT, fg=FG,
+        selectbackground=ACCENT, selectforeground="white",
+        bd=0, relief="flat", highlightthickness=0,
+        font=f_ui, activestyle="none")
     listbox.pack(side="left", fill="both", expand=True, padx=10, pady=8)
 
-    sb = tk.Scrollbar(
-        list_wrap,
-        command=listbox.yview,
-        bd=0,
-        relief="flat",
-        bg=BG_INPUT,
-        troughcolor=BG_INPUT,
-        activebackground=BORDER,
-        highlightthickness=0,
-        width=10,
-    )
+    sb = tk.Scrollbar(list_wrap, command=listbox.yview,
+                      bd=0, relief="flat",
+                      bg=BG_INPUT, troughcolor=BG_INPUT,
+                      activebackground=BORDER,
+                      highlightthickness=0, width=10)
     sb.pack(side="right", fill="y", pady=8)
     listbox.config(yscrollcommand=sb.set)
 
@@ -416,34 +324,19 @@ def _build_ui(root):
         paths = filedialog.askopenfilenames(
             title=t("btn_add_files"),
             filetypes=[
-                (
-                    "Media",
-                    "*.mp4 *.mov *.mkv *.avi *.webm *.m4a "
-                    "*.mp3 *.wav *.aac *.flac *.ogg",
-                ),
-                ("All files", "*.*"),
-            ],
-        )
+                ("Media", "*.mp4 *.mov *.mkv *.avi *.webm *.m4a "
+                          "*.mp3 *.wav *.aac *.flac *.ogg"),
+                ("All files", "*.*")])
         add_files(paths)
 
     def pick_folder():
         d = filedialog.askdirectory(title=t("btn_add_folder"))
         if not d:
             return
-        exts = {
-            ".mp4",
-            ".mov",
-            ".mkv",
-            ".avi",
-            ".webm",
-            ".m4a",
-            ".mp3",
-            ".wav",
-            ".aac",
-            ".flac",
-            ".ogg",
-        }
-        add_files([str(p) for p in Path(d).iterdir() if p.suffix.lower() in exts])
+        exts = {".mp4", ".mov", ".mkv", ".avi", ".webm",
+                ".m4a", ".mp3", ".wav", ".aac", ".flac", ".ogg"}
+        add_files([str(p) for p in Path(d).iterdir()
+                   if p.suffix.lower() in exts])
 
     def clear_list():
         selected_files.clear()
@@ -454,261 +347,66 @@ def _build_ui(root):
     btn_row = tk.Frame(files_inner, bg=BG_CARD)
     btn_row.pack(fill="x")
 
-    FlatButton(
-        btn_row,
-        t("btn_add_files"),
-        pick_files,
-        bg=BG_INPUT,
-        hover=BORDER,
-        fg=FG,
-        padx=14,
-        pady=7,
-        font=f_btn,
-    ).pack(side="left")
-    FlatButton(
-        btn_row,
-        t("btn_add_folder"),
-        pick_folder,
-        bg=BG_INPUT,
-        hover=BORDER,
-        fg=FG,
-        padx=14,
-        pady=7,
-        font=f_btn,
-    ).pack(side="left", padx=8)
-    FlatButton(
-        btn_row,
-        t("btn_clear_list"),
-        clear_list,
-        bg=BG_INPUT,
-        hover=BORDER,
-        fg=FG_SUBTLE,
-        padx=14,
-        pady=7,
-        font=f_btn,
-    ).pack(side="left")
+    FlatButton(btn_row, t("btn_add_files"), pick_files,
+               bg=BG_INPUT, hover=BORDER, fg=FG,
+               padx=14, pady=7, font=f_btn).pack(side="left")
+    FlatButton(btn_row, t("btn_add_folder"), pick_folder,
+               bg=BG_INPUT, hover=BORDER, fg=FG,
+               padx=14, pady=7, font=f_btn).pack(side="left", padx=8)
+    FlatButton(btn_row, t("btn_clear_list"), clear_list,
+               bg=BG_INPUT, hover=BORDER, fg=FG_SUBTLE,
+               padx=14, pady=7, font=f_btn).pack(side="left")
 
     if dnd_ok:
-
         def on_drop(event):
             raw = event.data
             paths = re.findall(r"\{([^}]+)\}|(\S+)", raw)
             flat = [a or b for a, b in paths]
             add_files(flat)
-
         listbox.drop_target_register(DND_FILES)
         listbox.dnd_bind("<<Drop>>", on_drop)
-        tk.Label(
-            files_inner,
-            text=t("hint_drop"),
-            bg=BG_CARD,
-            fg=FG_SUBTLE,
-            font=(f_small[0], f_small[1], "italic"),
-        ).pack(anchor="w", pady=(8, 0))
-
-    # ── Settings card ────────────────────────────────────────
-    opts_card = tk.Frame(root, bg=BG_CARD)
-    opts_card.pack(fill="x", padx=24, pady=(12, 0))
-
-    opts_inner = tk.Frame(opts_card, bg=BG_CARD)
-    opts_inner.pack(fill="x", padx=16, pady=16)
-
-    ttk.Label(opts_inner, text=t("section_settings"), style="Section.TLabel").grid(
-        row=0, column=0, columnspan=4, sticky="w", pady=(0, 16)
-    )
-
-    saved_model = settings.get("model", "Авто")
-    model_var = tk.StringVar(value=model_to_display(saved_model))
-
-    vad_var = tk.BooleanVar(value=settings["vad"])
-    cache_var = tk.BooleanVar(value=settings["cache"])
-    srt_var = tk.BooleanVar(value=settings["srt"])
-    sound_var = tk.BooleanVar(value=settings.get("sound_on_done", True))
-    font_size_var = tk.StringVar(value=_font_label(font_size_key))
-    workers_var = tk.StringVar(value=settings["workers"])
-
-    prev_lang = {"value": default_lang}
-
-    def on_lang_selected(event=None):
-        val = lang_var.get()
-        if is_separator(val):
-            lang_var.set(prev_lang["value"])
-        else:
-            prev_lang["value"] = val
-
-    def on_font_size_selected(event=None):
-        label = font_size_var.get()
-        new_key = None
-        for k in FONT_SIZE_ORDER:
-            if _font_label(k) == label:
-                new_key = k
-                break
-        if not new_key:
-            return
-
-        if is_running["value"]:
-            font_size_var.set(_font_label(font_size_key))
-            return
-
-        s = load_settings()
-        s["font_size"] = new_key
-        s["lang"] = lang_var.get()
-        s["model"] = model_to_internal(model_var.get())
-        s["vad"] = vad_var.get()
-        s["cache"] = cache_var.get()
-        s["srt"] = srt_var.get()
-        s["sound_on_done"] = sound_var.get()
-        s["workers"] = workers_var.get()
-        save_settings(s)
-
-        root.after_idle(lambda: (_rebuild_ui(root), _autosize_window(root)))
-
-    def _cell_with_label(label_text):
-        c = tk.Frame(opts_inner, bg=BG_CARD)
-        tk.Label(c, text=label_text, bg=BG_CARD, fg=FG_SUBTLE, font=label_font).pack(
-            anchor="w", pady=(0, 6)
-        )
-        return c
-
-    def _cell_checkbox(text, var):
-        c = tk.Frame(opts_inner, bg=BG_CARD)
-        tk.Label(c, text=" ", bg=BG_CARD, fg=FG_SUBTLE, font=label_font).pack(
-            anchor="w", pady=(0, 6)
-        )
-        FlatCheckbox(c, text, var, font=f_ui).pack(anchor="w")
-        return c
-
-    cells = []
-
-    c_lang = _cell_with_label(t("label_lang"))
-    lang_combo = ttk.Combobox(
-        c_lang,
-        textvariable=lang_var,
-        values=get_combo_values(),
-        state="readonly",
-        font=combo_font,
-    )
-    lang_combo.pack(anchor="w", fill="x")
-    lang_combo.bind("<<ComboboxSelected>>", on_lang_selected)
-    cells.append(c_lang)
-
-    c_model = _cell_with_label(t("label_model"))
-    ttk.Combobox(
-        c_model,
-        textvariable=model_var,
-        values=get_model_choices(),
-        state="readonly",
-        font=combo_font,
-    ).pack(anchor="w", fill="x")
-    cells.append(c_model)
-
-    c_font = _cell_with_label(t("label_font_size"))
-    font_size_combo = ttk.Combobox(
-        c_font,
-        textvariable=font_size_var,
-        values=[_font_label(k) for k in FONT_SIZE_ORDER],
-        state="readonly",
-        font=combo_font,
-    )
-    font_size_combo.pack(anchor="w", fill="x")
-    font_size_combo.bind("<<ComboboxSelected>>", on_font_size_selected)
-    cells.append(c_font)
-
-    c_workers = _cell_with_label(t("label_workers"))
-    ttk.Combobox(
-        c_workers,
-        textvariable=workers_var,
-        values=["1", "2", "3", "4"],
-        state="readonly",
-        font=combo_font,
-    ).pack(anchor="w", fill="x")
-    cells.append(c_workers)
-
-    cells.append(_cell_checkbox(t("chk_vad"), vad_var))
-    cells.append(_cell_checkbox(t("chk_cache"), cache_var))
-    cells.append(_cell_checkbox(t("chk_srt"), srt_var))
-    cells.append(_cell_checkbox(t("chk_sound"), sound_var))
-
-    _layout_state = {"cols": None}
-
-    def _relayout_settings(event=None):
-        w = opts_inner.winfo_width()
-        if w < 100:
-            return
-
-        cols = 4 if w >= SETTINGS_COLS_WIDE else SETTINGS_COLS_NARROW
-        if _layout_state["cols"] == cols:
-            return
-        _layout_state["cols"] = cols
-
-        for i, cell in enumerate(cells):
-            r = i // cols + 1
-            cc = i % cols
-            cell.grid(row=r, column=cc, sticky="ew", padx=(0, 20), pady=(0, 14))
-
-        for cc in range(4):
-            if cc < cols:
-                opts_inner.grid_columnconfigure(cc, weight=1, minsize=180)
-            else:
-                opts_inner.grid_columnconfigure(cc, weight=0, minsize=0)
-
-    opts_inner.bind("<Configure>", _relayout_settings)
-    opts_inner.after(50, _relayout_settings)
+        tk.Label(files_inner, text=t("hint_drop"),
+                 bg=BG_CARD, fg=FG_SUBTLE,
+                 font=(f_small[0], f_small[1], "italic")).pack(
+                     anchor="w", pady=(8, 0))
 
     # ── Progress ─────────────────────────────────────────────
     prog_wrap = tk.Frame(root, bg=BG)
-    prog_wrap.pack(fill="x", padx=24, pady=(16, 0))
+    prog_wrap.pack(fill="x", padx=24, pady=(20, 0))
 
     overall_var = tk.DoubleVar(value=0)
-    ttk.Progressbar(prog_wrap, variable=overall_var, maximum=100).pack(fill="x")
+    ttk.Progressbar(prog_wrap, variable=overall_var,
+                    maximum=100).pack(fill="x")
 
-    tk.Label(
-        prog_wrap,
-        text=t("overall_progress"),
-        bg=BG,
-        fg=FG_DIM,
-        font=f_small,
-        anchor="w",
-    ).pack(fill="x", pady=(4, 0))
+    tk.Label(prog_wrap, text=t("overall_progress"),
+             bg=BG, fg=FG_DIM,
+             font=f_small,
+             anchor="w").pack(fill="x", pady=(4, 0))
 
     current_var = tk.DoubleVar(value=0)
-    ttk.Progressbar(prog_wrap, variable=current_var, maximum=100).pack(
-        fill="x", pady=(6, 0)
-    )
+    ttk.Progressbar(prog_wrap, variable=current_var,
+                    maximum=100).pack(fill="x", pady=(6, 0))
 
     current_file_var = tk.StringVar(value="")
-    tk.Label(
-        prog_wrap,
-        textvariable=current_file_var,
-        bg=BG,
-        fg=FG_SUBTLE,
-        font=f_small,
-        anchor="w",
-    ).pack(fill="x", pady=(4, 0))
+    tk.Label(prog_wrap, textvariable=current_file_var,
+             bg=BG, fg=FG_SUBTLE,
+             font=f_small,
+             anchor="w").pack(fill="x", pady=(4, 0))
 
     info_row = tk.Frame(prog_wrap, bg=BG)
     info_row.pack(fill="x", pady=(8, 0))
 
     status_var = tk.StringVar(value=t("status_ready"))
-    status_lbl = tk.Label(
-        info_row,
-        textvariable=status_var,
-        bg=BG,
-        fg=FG_SUBTLE,
-        font=f_ui,
-        anchor="w",
-        justify="left",
-    )
+    status_lbl = tk.Label(info_row, textvariable=status_var,
+                          bg=BG, fg=FG_SUBTLE,
+                          font=f_ui,
+                          anchor="w", justify="left")
     status_lbl.pack(side="left", fill="x", expand=True)
 
     eta_var = tk.StringVar(value="")
-    tk.Label(
-        info_row,
-        textvariable=eta_var,
-        bg=BG,
-        fg=ACCENT,
-        font=(f_ui[0], f_ui[1], "bold"),
-    ).pack(side="right")
+    tk.Label(info_row, textvariable=eta_var,
+             bg=BG, fg=ACCENT,
+             font=(f_ui[0], f_ui[1], "bold")).pack(side="right")
 
     # ── Bottom buttons ───────────────────────────────────────
     run_row = tk.Frame(root, bg=BG)
@@ -725,34 +423,19 @@ def _build_ui(root):
         if not path.exists():
             messagebox.showwarning("Vox", f"File not found:\n{path}")
             return
-        preview_window["win"] = show_preview(root, path, preview_window["win"])
+        preview_window["win"] = show_preview(root, path,
+                                              preview_window["win"])
 
-    open_btn = FlatButton(
-        run_row,
-        t("btn_open_result"),
-        open_result,
-        bg=BG_INPUT,
-        hover=BORDER,
-        fg=FG,
-        padx=18,
-        pady=10,
-        font=f_btn,
-    )
+    open_btn = FlatButton(run_row, t("btn_open_result"), open_result,
+                           bg=BG_INPUT, hover=BORDER, fg=FG,
+                           padx=18, pady=10, font=f_btn)
     open_btn.pack(side="left", padx=(0, 8))
     if not last_results:
         open_btn.config(state="disabled")
 
-    preview_btn = FlatButton(
-        run_row,
-        t("btn_preview"),
-        preview_result,
-        bg=BG_INPUT,
-        hover=BORDER,
-        fg=FG,
-        padx=18,
-        pady=10,
-        font=f_btn,
-    )
+    preview_btn = FlatButton(run_row, t("btn_preview"), preview_result,
+                              bg=BG_INPUT, hover=BORDER, fg=FG,
+                              padx=18, pady=10, font=f_btn)
     preview_btn.pack(side="left", padx=(0, 8))
     if not last_results:
         preview_btn.config(state="disabled")
@@ -763,14 +446,12 @@ def _build_ui(root):
     def set_running(run):
         is_running["value"] = run
         if run:
-            start_btn.set_style(
-                bg=DANGER, hover=DANGER_HOVER, fg="white", text=t("btn_cancel")
-            )
+            start_btn.set_style(bg=DANGER, hover=DANGER_HOVER,
+                                fg="white", text=t("btn_cancel"))
             start_btn.command = cancel
         else:
-            start_btn.set_style(
-                bg=ACCENT, hover=ACCENT_HOVER, fg="white", text=t("btn_transcribe")
-            )
+            start_btn.set_style(bg=ACCENT, hover=ACCENT_HOVER,
+                                fg="white", text=t("btn_transcribe"))
             start_btn.command = start
 
     def cancel():
@@ -779,19 +460,6 @@ def _build_ui(root):
         status_var.set(t("status_canceling"))
         logger.info("Cancel requested")
         request_cancel()
-
-    def current_settings():
-        return {
-            "lang": lang_var.get(),
-            "ui_lang": UI_LANG_NAME_TO_CODE.get(ui_lang_var.get(), "en"),
-            "model": model_to_internal(model_var.get()),
-            "vad": vad_var.get(),
-            "cache": cache_var.get(),
-            "srt": srt_var.get(),
-            "sound_on_done": sound_var.get(),
-            "workers": workers_var.get(),
-            "font_size": font_size_key,
-        }
 
     def _validate_long_files(files):
         if not settings.get("warn_long_files", True):
@@ -807,13 +475,10 @@ def _build_ui(root):
             eta = estimate_processing_time(duration)
             answer = messagebox.askyesno(
                 t("warn_long_file_title"),
-                t(
-                    "warn_long_file_text",
-                    name=Path(f).name,
-                    duration=fmt_time(duration),
-                    eta=fmt_time(eta) if eta else "—",
-                ),
-            )
+                t("warn_long_file_text",
+                  name=Path(f).name,
+                  duration=fmt_time(duration),
+                  eta=fmt_time(eta) if eta else "—"))
             if not answer:
                 return False
         return True
@@ -833,22 +498,24 @@ def _build_ui(root):
 
     def start():
         if not selected_files:
-            messagebox.showwarning(t("msg_no_files_title"), t("msg_no_files_text"))
+            messagebox.showwarning(t("msg_no_files_title"),
+                                    t("msg_no_files_text"))
             return
+
         problems = check_deps()
         if problems:
             from ui.missing_deps import show_missing_deps
-
             missing = []
             for p in problems:
                 if "whisper-cli" in p:
-                    missing.append(
-                        {"name": "whisper-cli", "hint": "brew install whisper-cpp"}
-                    )
+                    missing.append({"name": "whisper-cli",
+                                    "hint": "brew install whisper-cpp"})
                 elif "ffmpeg" in p and "ffprobe" not in p:
-                    missing.append({"name": "ffmpeg", "hint": "brew install ffmpeg"})
+                    missing.append({"name": "ffmpeg",
+                                    "hint": "brew install ffmpeg"})
                 elif "ffprobe" in p:
-                    missing.append({"name": "ffprobe", "hint": "brew install ffmpeg"})
+                    missing.append({"name": "ffprobe",
+                                    "hint": "brew install ffmpeg"})
                 else:
                     missing.append({"name": p, "hint": ""})
 
@@ -859,7 +526,6 @@ def _build_ui(root):
         if not _validate_long_files(selected_files):
             return
 
-        save_settings(current_settings())
         reset_cancel()
         set_running(True)
         open_btn.config(state="disabled")
@@ -874,20 +540,23 @@ def _build_ui(root):
         detected["code"] = None
         detected["prob"] = None
 
-        raw_lang = lang_var.get()
+        # Read all live settings from settings.json — they are managed
+        # by the settings window and saved there on Apply.
+        live = load_settings()
+        raw_lang = live.get("lang", "English")
         language = LANGUAGES.get(raw_lang, "auto")
 
-        use_vad = vad_var.get()
-        use_cache = cache_var.get()
-        save_srt = srt_var.get()
-        play_on_done = sound_var.get()
-        workers = int(workers_var.get())
-        chosen_model = model_to_internal(model_var.get())
+        use_vad = live.get("vad", True)
+        use_cache = live.get("cache", True)
+        save_srt = live.get("srt", False)
+        play_on_done = live.get("sound_on_done", True)
+        workers = int(live.get("workers", "1"))
+        chosen_model = live.get("model", "Авто")
         total = len(selected_files)
 
         start_time = time.time()
         progress_lock = threading.Lock()
-        progress_map = dict.fromkeys(selected_files, 0.0)
+        progress_map = {f: 0.0 for f in selected_files}
 
         def update_overall():
             with progress_lock:
@@ -912,21 +581,16 @@ def _build_ui(root):
                 ui(update_overall)
                 ui(lambda: update_current(x))
 
-            ui(lambda: current_file_var.set(t("current_prefix", name=Path(media).name)))
+            ui(lambda: current_file_var.set(
+                t("current_prefix", name=Path(media).name)))
 
             return transcribe_one(
-                media,
-                model,
-                language,
-                use_vad,
-                save_srt=save_srt,
+                media, model, language, use_vad, save_srt=save_srt,
                 on_progress=on_prog,
-                on_status=lambda m: ui(
-                    lambda: status_var.set(f"{Path(media).name} — {m}")
-                ),
+                on_status=lambda m: ui(lambda: status_var.set(
+                    f"{Path(media).name} — {m}")),
                 on_language=on_detected_language,
-                use_cache=use_cache,
-            )
+                use_cache=use_cache)
 
         def worker(media):
             try:
@@ -951,14 +615,10 @@ def _build_ui(root):
                     results.append(fut.result())
 
             ok = [r[1] for r in results if r[1]]
-            errs = [
-                (r[0], r[2])
-                for r in results
-                if r[2] and "Отменено" not in r[2] and "Cancel" not in r[2]
-            ]
-            cancelled = any(
-                r[2] and ("Отменено" in r[2] or "Cancel" in r[2]) for r in results
-            )
+            errs = [(r[0], r[2]) for r in results if r[2]
+                    and "Отменено" not in r[2] and "Cancel" not in r[2]]
+            cancelled = any(r[2] and ("Отменено" in r[2] or "Cancel" in r[2])
+                            for r in results)
 
             cleanup_cache()
 
@@ -970,23 +630,19 @@ def _build_ui(root):
                 current_file_var.set("")
 
                 if cancelled:
-                    status_var.set(t("status_cancelled", ok=len(ok), total=total))
+                    status_var.set(t("status_cancelled",
+                                     ok=len(ok), total=total))
                     status_lbl.config(fg=DANGER)
                 elif errs:
-                    status_var.set(
-                        t("status_done_errors", ok=len(ok), total=total, errs=len(errs))
-                    )
+                    status_var.set(t("status_done_errors",
+                                     ok=len(ok), total=total,
+                                     errs=len(errs)))
                     status_lbl.config(fg=DANGER)
                 else:
                     elapsed = time.time() - start_time
-                    status_var.set(
-                        t(
-                            "status_done_time",
-                            ok=len(ok),
-                            total=total,
-                            time=fmt_time(elapsed),
-                        )
-                    )
+                    status_var.set(t("status_done_time",
+                                     ok=len(ok), total=total,
+                                     time=fmt_time(elapsed)))
                     status_lbl.config(fg=SUCCESS)
 
                 if ok:
@@ -998,19 +654,18 @@ def _build_ui(root):
                 if errs and not cancelled:
                     messagebox.showwarning(
                         t("msg_errors_title"),
-                        "\n".join(f"{Path(m).name}: {e}" for m, e in errs[:5]),
-                    )
+                        "\n".join(f"{Path(m).name}: {e}"
+                                  for m, e in errs[:5]))
 
                 if not cancelled:
-                    notify(
-                        "Vox",
-                        t("status_done", ok=len(ok), total=total)
-                        + (f", errors: {len(errs)}" if errs else ""),
-                    )
+                    notify("Vox", t("status_done",
+                                    ok=len(ok), total=total)
+                           + (f", errors: {len(errs)}" if errs else ""))
                     if play_on_done and ok:
                         play_sound("done")
                 else:
-                    notify("Vox", t("status_cancelled", ok=len(ok), total=total))
+                    notify("Vox", t("status_cancelled",
+                                    ok=len(ok), total=total))
                     if play_on_done:
                         play_sound("error")
 
@@ -1021,17 +676,10 @@ def _build_ui(root):
 
         threading.Thread(target=runner, daemon=True).start()
 
-    start_btn = FlatButton(
-        run_row,
-        t("btn_transcribe"),
-        start,
-        bg=ACCENT,
-        hover=ACCENT_HOVER,
-        fg="white",
-        padx=28,
-        pady=10,
-        font=(f_btn[0], f_btn[1] + 1, "bold"),
-    )
+    start_btn = FlatButton(run_row, t("btn_transcribe"), start,
+                            bg=ACCENT, hover=ACCENT_HOVER, fg="white",
+                            padx=28, pady=10,
+                            font=(f_btn[0], f_btn[1] + 1, "bold"))
     start_btn.pack(side="left", padx=(0, 8))
 
     if is_running["value"]:
@@ -1053,51 +701,28 @@ def _build_ui(root):
         after = cache_size_mb()
         messagebox.showinfo(
             t("cache_cleared_title"),
-            t("cache_cleared", n=n, before=before, after=after),
-        )
+            t("cache_cleared", n=n, before=before, after=after))
 
     footer = tk.Frame(root, bg=BG)
     footer.pack(fill="x", padx=24, pady=(16, 14))
 
-    tk.Label(footer, text=f"Vox  v{__version__}", bg=BG, fg=FG_DIM, font=f_small).pack(
-        side="left"
-    )
+    tk.Label(footer, text=f"Vox  v{__version__}",
+             bg=BG, fg=FG_DIM,
+             font=f_small).pack(side="left")
 
-    FlatButton(
-        footer,
-        t("btn_clear_cache"),
-        act_clear_cache,
-        bg=BG_INPUT,
-        hover=BORDER,
-        fg=FG_SUBTLE,
-        padx=12,
-        pady=6,
-        font=f_small,
-    ).pack(side="right")
+    FlatButton(footer, t("btn_clear_cache"), act_clear_cache,
+               bg=BG_INPUT, hover=BORDER, fg=FG_SUBTLE,
+               padx=12, pady=6, font=f_small).pack(side="right")
 
-    FlatButton(
-        footer,
-        t("btn_logs"),
-        act_show_log,
-        bg=BG_INPUT,
-        hover=BORDER,
-        fg=FG_SUBTLE,
-        padx=12,
-        pady=6,
-        font=f_small,
-    ).pack(side="right", padx=(0, 8))
+    FlatButton(footer, t("btn_logs"), act_show_log,
+               bg=BG_INPUT, hover=BORDER, fg=FG_SUBTLE,
+               padx=12, pady=6,
+               font=f_small).pack(side="right", padx=(0, 8))
 
-    FlatButton(
-        footer,
-        t("btn_about"),
-        act_about,
-        bg=BG_INPUT,
-        hover=BORDER,
-        fg=FG_SUBTLE,
-        padx=12,
-        pady=6,
-        font=f_small,
-    ).pack(side="right", padx=(0, 8))
+    FlatButton(footer, t("btn_about"), act_about,
+               bg=BG_INPUT, hover=BORDER, fg=FG_SUBTLE,
+               padx=12, pady=6,
+               font=f_small).pack(side="right", padx=(0, 8))
 
     # ── Escape ───────────────────────────────────────────────
     def hk_cancel(event=None):
@@ -1114,7 +739,7 @@ def _build_ui(root):
                 return
             request_cancel()
             time.sleep(0.4)
-        save_settings(current_settings())
+        # Settings are saved by the settings window; nothing to flush here.
         logger.info("Vox closing")
         root.destroy()
 
@@ -1127,42 +752,28 @@ def _setup_styles():
     style = ttk.Style()
     style.theme_use("clam")
     style.configure("TFrame", background=BG)
-    style.configure("TLabel", background=BG, foreground=FG, font=("Helvetica", 12))
-    style.configure(
-        "Subtle.TLabel", background=BG, foreground=FG_SUBTLE, font=("Helvetica", 11)
-    )
-    style.configure(
-        "Title.TLabel", background=BG, foreground=FG, font=("Helvetica", 22, "bold")
-    )
-    style.configure(
-        "Section.TLabel",
-        background=BG_CARD,
-        foreground=FG,
-        font=("Helvetica", 12, "bold"),
-    )
-    style.configure(
-        "TCombobox",
-        fieldbackground=BG_INPUT,
-        background=BG_INPUT,
-        foreground=FG,
-        arrowcolor=FG,
-        borderwidth=0,
-        padding=(6, 2),
-        selectbackground=BG_INPUT,
-        selectforeground=FG,
-    )
-    style.map(
-        "TCombobox",
-        fieldbackground=[("readonly", BG_INPUT)],
-        foreground=[("readonly", FG)],
-        selectbackground=[("readonly", BG_INPUT)],
-        selectforeground=[("readonly", FG)],
-        bordercolor=[("focus", ACCENT)],
-    )
-    style.configure(
-        "TProgressbar",
-        troughcolor=BG_INPUT,
-        background=ACCENT,
-        borderwidth=0,
-        thickness=8,
-    )
+    style.configure("TLabel", background=BG, foreground=FG,
+                    font=("Helvetica", 12))
+    style.configure("Subtle.TLabel", background=BG, foreground=FG_SUBTLE,
+                    font=("Helvetica", 11))
+    style.configure("Title.TLabel", background=BG, foreground=FG,
+                    font=("Helvetica", 22, "bold"))
+    style.configure("Section.TLabel", background=BG_CARD, foreground=FG,
+                    font=("Helvetica", 12, "bold"))
+    style.configure("TCombobox",
+                    fieldbackground=BG_INPUT,
+                    background=BG_INPUT,
+                    foreground=FG,
+                    arrowcolor=FG,
+                    borderwidth=0,
+                    padding=(6, 2),
+                    selectbackground=BG_INPUT,
+                    selectforeground=FG)
+    style.map("TCombobox",
+              fieldbackground=[("readonly", BG_INPUT)],
+              foreground=[("readonly", FG)],
+              selectbackground=[("readonly", BG_INPUT)],
+              selectforeground=[("readonly", FG)],
+              bordercolor=[("focus", ACCENT)])
+    style.configure("TProgressbar", troughcolor=BG_INPUT,
+                    background=ACCENT, borderwidth=0, thickness=8)

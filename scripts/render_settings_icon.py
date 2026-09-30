@@ -8,7 +8,6 @@ the frames to assets/settings_anim/frame_XX.png.
 Run once whenever the Lottie source changes:
     python3 scripts/render_settings_icon.py
 """
-
 import sys
 from pathlib import Path
 
@@ -25,7 +24,7 @@ SIZE = 64
 
 # Icon color: light gray similar to FG_SUBTLE from config, so the
 # icon reads clearly on the dark background. Change if theme changes.
-TARGET_COLOR = (200, 200, 205, 255)  # RGBA
+TARGET_COLOR = (200, 200, 205, 255)   # RGBA
 
 
 def recolor(img: Image.Image, color: tuple) -> Image.Image:
