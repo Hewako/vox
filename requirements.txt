@@ -1,4 +1,7 @@
-py2app
-tkinterdnd2
-certifi
-pytest
+Pillow>=10.0
+tkinterdnd2>=0.4
+certifi>=2024.0
+rlottie-python>=1.3
+py2app>=0.28
+pytest>=8.0
+ruff>=0.6

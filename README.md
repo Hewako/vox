@@ -1,111 +1,193 @@
+<div align="center">
+
 # Vox
 
-**Расшифровка аудио и видео в текст, прямо у тебя на компе.**
+**Local audio and video transcription for macOS.**
+No cloud, no subscriptions, no data leaks.
 
-> Это приложение собирается локально. Готового установщика нет и не будет — так задумано, чтобы ты видел весь код и запускал только то, что собрал сам.
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/Hewako/vox/releases)
+[![Platform](https://img.shields.io/badge/platform-macOS%2011%2B-lightgrey.svg)](https://github.com/Hewako/vox)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-Vox превращает речь в текст полностью на твоём Mac. Без облаков, без подписок, без того, чтобы твои файлы куда-то утекали.
+[Features](#features) ·
+[Requirements](#requirements) ·
+[Installation](#installation) ·
+[Usage](#usage) ·
+[Development](#development) ·
+[Known limitations](#known-limitations)
 
-Под капотом whisper.cpp, работает на чипах Apple Silicon (M1, M2, M3, M4). Расшифровка идёт в 5-15 раз быстрее реального времени.
+</div>
 
-## Что умеет
+---
 
-- **Расшифровывает аудио и видео**. MP4, MOV, MKV, MP3, WAV, M4A и кучу других форматов
-- **99 языков**. Автоопределение или ручной выбор
-- **Всё локально**. Файлы никуда не уходят с твоего Mac
-- **VAD**. Убирает тишину и снижает галлюцинации Whisper
-- **SRT-субтитры**. Сохраняет рядом с текстом
-- **Пачка файлов**. Можно бросить сразу несколько и уйти пить чай
-- **Кэш**. Повторная расшифровка того же файла происходит мгновенно
-- **Drag & Drop**. Файлы можно просто перетащить в список
-- **12 языков интерфейса**. English, Русский, Español, 中文, हिन्दी, العربية, Português, Deutsch, 日本語, Français, Polski, Srpski
+![Vox main window](docs/screenshots/main.jpg)
 
-## Что нужно
+## About
 
-- macOS 11 (Big Sur) или новее
-- Apple Silicon (M1/M2/M3/M4), хотя и на Intel заведётся, просто медленнее
-- 8 ГБ оперативки или больше
-- 2 ГБ свободного места под модель Whisper
+Vox is a desktop app for macOS that turns speech into text entirely on
+your machine. No API keys, no cloud uploads, no subscriptions.
 
-## Установка
+Under the hood it uses [whisper.cpp](https://github.com/ggerganov/whisper.cpp)
+on Apple Silicon. Transcription runs 5-15x faster than real time on
+M1/M2/M3/M4 chips.
 
-### 1. Homebrew
+## Features
 
-Если его ещё нет, ставим:
+| | |
+|---|---|
+| Audio and video input | MP4, MOV, MKV, MP3, WAV, M4A and more |
+| 99 languages | Automatic detection or manual selection |
+| Fully local | Files never leave your Mac |
+| VAD | Removes silence, reduces Whisper hallucinations |
+| SRT subtitles | Saved next to the plain-text output |
+| Batch processing | 1-4 parallel jobs |
+| Cache | Repeat transcription of the same file is instant |
+| Drag and drop | Drop files straight into the list |
+| 12 interface languages | EN, RU, ES, ZH, HI, AR, PT, DE, JA, FR, PL, SR |
+| History | Every transcription kept with its result |
+| Auto-update | Checks for a new version on launch |
 
-~~~bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-~~~
+![Vox transcription in progress](docs/screenshots/transcribing.jpg)
 
-### 2. Зависимости
+## Requirements
 
-~~~bash
-brew install whisper-cpp ffmpeg
-~~~
+- macOS 11 (Big Sur) or newer
+- Apple Silicon (M1/M2/M3/M4). Intel works but slower
+- 8 GB RAM or more
+- About 2 GB of free disk space for the Whisper model
 
-### 3. Сам Vox
+## Installation
 
-Получил `Vox.app` от автора? Просто перетащи в Программы.
+### Prebuilt app
 
-Хочешь собрать сам? Раздел «Сборка из исходников» ниже.
+Download the latest `.app` from the
+[Releases](https://github.com/Hewako/vox/releases) page, unzip and drag
+`Vox.app` into Applications.
 
-### 4. Первый запуск
+The first launch may trigger a Gatekeeper warning about an unidentified
+developer. Open **System Settings - Privacy & Security** and click
+**Open Anyway**. This is a one-time step.
 
-Открывай Vox. Если моделей Whisper нет, приложение само предложит их скачать (около 1.5 ГБ).
+### From source
 
-## Как пользоваться
+Homebrew and Python 3.11+ required.
 
-1. Добавь файлы кнопкой или перетащи в список
-2. Настрой язык, модель, VAD, SRT
-3. Жми Расшифровать
-4. Забирай результат. Рядом с видео появится `.txt`, а если включил SRT, то ещё и `.srt`
+    # 1. Dependencies
+    brew install whisper-cpp ffmpeg
 
-## Горячие клавиши
+    # 2. Clone
+    git clone https://github.com/Hewako/vox.git
+    cd vox
 
-| Клавиша | Что делает |
-|---------|------------|
-| Esc | Отменяет текущую расшифровку |
+    # 3. Virtual environment
+    python3 -m venv .venv
+    source .venv/bin/activate
+    pip install -r requirements.txt
 
-## Где всё лежит
+    # 4. Build the .app
+    python3 setup.py py2app
 
-| Что | Где |
-|-----|-----|
-| Модели Whisper | ~/whisper-models/ |
-| Кэш расшифровок | ~/.whisper_cache/ (до 500 МБ) |
-| Настройки | ~/Library/Application Support/Vox/settings.json |
-| Логи | ~/Library/Logs/Vox.log |
+The finished app ends up in `/Applications/Vox.app`.
 
-Кэш сам подчищается, когда переваливает за 500 МБ. Если хочешь убрать прямо сейчас, есть кнопка Очистить кэш в самом приложении.
+## Usage
 
-## Сборка из исходников
+![Vox settings](docs/screenshots/settings.jpg)
 
-~~~bash
-# 1. Клонируй репозиторий
-git clone https://github.com/Hewako/vox.git
-cd vox
+1. Add files with the button or drag them into the list
+2. Configure language, model, VAD and SRT in the settings window
+3. Click Transcribe. Multiple files are queued automatically
+4. Collect the result: a `.txt` next to the source file, plus `.srt` if enabled
 
-# 2. Поставь сборщик
-pip3 install py2app tkinterdnd2
+### Where things live
 
-# 3. Собери приложение
-python3 setup.py py2app
+| Item | Path |
+|------|------|
+| Whisper models | `~/whisper-models/` |
+| Transcription cache | `~/.whisper_cache/` (500 MB cap) |
+| Settings | `~/Library/Application Support/Vox/settings.json` |
+| History | `~/Library/Application Support/Vox/history.json` |
+| Logs | `~/Library/Logs/Vox.log` (rotation: 1 MB x 5 files) |
 
-# 4. Закинь в Программы
-cp -R dist/Vox.app /Applications/
-~~~
+The cache is cleaned automatically when it exceeds the cap. Use the
+**Clear cache** button in the footer to empty it on demand.
 
-Готовый `.app` окажется в папке `dist/`.
+### Keyboard shortcuts
 
-## На чём сделано
+| Key | Action |
+|-----|--------|
+| `Esc` | Cancel the current transcription |
+| `Enter` | Apply changes in the settings window |
+| `Esc` | Close the settings window without saving |
 
-- whisper.cpp: движок распознавания
-- ffmpeg: достаёт аудио из видео
-- Python 3.11+ с tkinter: интерфейс
+## Development
 
-## Лицензия
+![Vox history](docs/screenshots/history.jpg)
 
-MIT. Делай что хочешь.
+### Environment
 
-## Автор
+    python3 -m venv .venv
+    source .venv/bin/activate
+    pip install -r requirements.txt
 
-Vox 1.0.0, сделал [Hewako](https://github.com/Hewako)
+### Tests
+
+    pytest tests/ -v
+
+98 tests covering core/updater, core/settings, core/models, core/cache,
+core/history, core/errors and core/utils.
+
+### Project layout
+
+    vox/
+    ├── core/           business logic: transcription, cache, history, updates
+    ├── ui/             interface: windows, dialogs, widgets
+    ├── tests/          pytest suite
+    ├── scripts/        helper scripts
+    ├── assets/         icons and resources
+    ├── docs/           documentation and screenshots
+    ├── config.py       constants, paths, palette
+    ├── i18n.py         translations (12 languages)
+    └── main.py         entry point
+
+### Build
+
+    python3 setup.py py2app
+
+The script copies the built `.app` to `/Applications/` and cleans up
+`build/` and `dist/`.
+
+## Tech stack
+
+- [whisper.cpp](https://github.com/ggerganov/whisper.cpp) - speech recognition engine
+- [ffmpeg](https://ffmpeg.org/) - audio extraction from video
+- [Python 3.11+](https://www.python.org/) + tkinter - user interface
+- [Pillow](https://python-pillow.org/) - image handling
+- [py2app](https://py2app.readthedocs.io/) - application bundling
+- [pytest](https://pytest.org/) - testing
+- [rlottie-python](https://github.com/laggykiller/rlottie-python) - settings icon animation
+
+## Known limitations
+
+- **macOS only.** The app relies on system APIs (`open`, `NSApplication`,
+  `xattr`) that do not map cleanly to Linux or Windows.
+- **No diarization.** All speakers appear in one stream. Speaker separation
+  is on the roadmap.
+- **Not notarized.** Gatekeeper shows a warning on first launch.
+- **Models downloaded from HuggingFace.** The first run needs internet.
+
+## Contributing
+
+Issues and pull requests are welcome. For larger changes, please open a
+[discussion](https://github.com/Hewako/vox/issues) first so we can agree
+on the approach.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
+
+## Author
+
+Built by [Hewako](https://github.com/Hewako).
+
+If Vox has been useful, consider starring the repository.
