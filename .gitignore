@@ -1,4 +1,4 @@
-# ─── Python ──────────────────────────────────────────────────
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -12,13 +12,13 @@ dist/
 .coverage
 htmlcov/
 
-# ─── Виртуальные окружения ──────────────────────────────────
+# Virtual environments
 venv/
 env/
 .venv/
 ENV/
 
-# ─── macOS ──────────────────────────────────────────────────
+# macOS
 .DS_Store
 .AppleDouble
 .LSOverride
@@ -26,15 +26,15 @@ ENV/
 .Spotlight-V100
 .Trashes
 
-# ─── IDE ────────────────────────────────────────────────────
-.vscode/
+# IDE — ignore personal settings, but keep the project's
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
 .idea/
 *.swp
 *.swo
 *~
 
-# ─── Vox: локальные данные ──────────────────────────────────
-*.log.venv/
-__pycache__/
-*.pyc
-.pytest_cache/
+# Vox local data
+*.log
