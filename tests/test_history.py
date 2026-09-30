@@ -75,7 +75,8 @@ class TestAdd:
         e = history.add("/broken.mp4", None, None, None, None,
                         "error", error="ffmpeg failed")
         assert e["status"] == "error"
-        assert e["error"] == "ffmpeg failed"
+        assert e["error"] == "E021"
+        assert e["error_message"] == "ffmpeg failed"
         assert e["output"] == ""
         assert e["duration"] is None
 
@@ -170,3 +171,33 @@ class TestRobustness:
         # The critical guarantee is that it does not raise.
         entries = history.list_entries()
         assert isinstance(entries, list)
+
+# ═══════════════════════════════════════════════════════════════
+#  Error classification on add()
+# ═══════════════════════════════════════════════════════════════
+class TestErrorClassification:
+    def test_raw_message_is_classified(self, monkeypatch, tmp_path):
+        _isolate(monkeypatch, tmp_path)
+        e = history.add("/x.mp4", None, None, None, None,
+                        "error", error="ffmpeg failed to decode")
+        assert e["error"] == "E021"
+        assert e["error_message"] == "ffmpeg failed to decode"
+
+    def test_existing_code_is_kept(self, monkeypatch, tmp_path):
+        _isolate(monkeypatch, tmp_path)
+        e = history.add("/x.mp4", None, None, None, None,
+                        "error", error="E020")
+        assert e["error"] == "E020"
+        assert e["error_message"] is None
+
+    def test_ok_status_has_no_error(self, monkeypatch, tmp_path):
+        _isolate(monkeypatch, tmp_path)
+        e = history.add("/x.mp4", "/x.txt", 1.0, "en", "small", "ok")
+        assert e["error"] is None
+        assert e["error_message"] is None
+
+    def test_unknown_message_becomes_E099(self, monkeypatch, tmp_path):
+        _isolate(monkeypatch, tmp_path)
+        e = history.add("/x.mp4", None, None, None, None,
+                        "error", error="something weird")
+        assert e["error"] == "E099"

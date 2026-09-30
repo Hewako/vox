@@ -17,11 +17,13 @@ All file operations are safe against missing or corrupt JSON: they
 fall back to an empty history rather than raising.
 """
 import json
-import logging
 import time
 import uuid
+import logging
+from pathlib import Path
 
 from config import HISTORY_FILE
+from core import errors
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +105,7 @@ def count() -> int:
 
 
 def add(
-    source: str,
+    source: str | None,
     output: str | None,
     duration: float | None,
     language: str | None,
@@ -115,8 +117,22 @@ def add(
     Append a new entry.
 
     status: 'ok' or 'error'. Anything else is stored as 'error'.
+    error:  for 'error' status, either an error code (E020) or a raw
+            message. If it is a raw message, it is auto-classified and
+            the original text is preserved in `error_message`.
     Returns the created entry (with its generated id).
     """
+    error_code = None
+    error_message = None
+
+    if status == "error" and error:
+        # If it already looks like a code (E0xx / E09x), keep it as-is.
+        if isinstance(error, str) and len(error) == 4 and error.startswith("E"):
+            error_code = error
+        else:
+            error_code = errors.classify(error)
+            error_message = str(error)
+
     entry = {
         "id": str(uuid.uuid4()),
         "source": str(source) if source else "",
@@ -126,14 +142,14 @@ def add(
         "model": model or "",
         "finished_at": time.time(),
         "status": status if status in ("ok", "error") else "error",
-        "error": error or None,
+        "error": error_code,
+        "error_message": error_message,
     }
 
     data = _read_raw()
     entries = [e for e in data.get("entries", []) if isinstance(e, dict)]
     entries.insert(0, entry)
 
-    # Trim to the cap, newest kept.
     if len(entries) > MAX_ENTRIES:
         entries = entries[:MAX_ENTRIES]
 
