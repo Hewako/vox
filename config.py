@@ -1,5 +1,5 @@
 """
-Vox — конфигурация: версия, пути, палитра, константы.
+Vox configuration: version, paths, palette, constants.
 """
 import os
 from pathlib import Path
@@ -7,7 +7,7 @@ from shutil import which
 
 __version__ = "1.0.0"
 
-# ─── PATH fix для .app ───────────────────────────────────────
+# ─── PATH fix for .app ───────────────────────────────────────
 _EXTRA = ["/opt/homebrew/bin", "/usr/local/bin"]
 _cur = os.environ.get("PATH", "")
 for _p in _EXTRA:
@@ -16,7 +16,7 @@ for _p in _EXTRA:
 os.environ["PATH"] = _cur
 
 
-# ─── Пути ────────────────────────────────────────────────────
+# ─── Paths ───────────────────────────────────────────────────
 HOME = Path.home()
 MODELS_DIR = HOME / "whisper-models"
 CACHE_DIR = HOME / ".whisper_cache"
@@ -40,18 +40,15 @@ LOG_DIR.mkdir(parents=True, exist_ok=True)
 APP_SUPPORT.mkdir(parents=True, exist_ok=True)
 
 
-# ─── Автообновление ──────────────────────────────────────────
-# Ссылка на манифест версии в репозитории. Приложение раз в сутки
-# читает этот файл и сравнивает версию со своей.
+# ─── Auto-update ─────────────────────────────────────────────
 UPDATE_URL = (
     "https://raw.githubusercontent.com/Hewako/vox/main/version.json"
 )
 
-# Как часто проверять обновления (в часах).
 UPDATE_CHECK_INTERVAL_HOURS = 24
 
 
-# ─── Бинарники ───────────────────────────────────────────────
+# ─── Binaries ────────────────────────────────────────────────
 def _find_bin(name):
     p = which(name)
     if p:
@@ -68,7 +65,22 @@ FFMPEG_BIN = _find_bin("ffmpeg")
 FFPROBE_BIN = _find_bin("ffprobe")
 
 
-# ─── Языки для расшифровки ───────────────────────────────────
+# ─── Palette (dark) ──────────────────────────────────────────
+BG           = "#1e1e1e"
+BG_CARD      = "#252528"
+BG_INPUT     = "#2c2c2e"
+FG           = "#e8e8e8"
+FG_SUBTLE    = "#8e8e93"
+FG_DIM       = "#6c6c70"
+ACCENT       = "#0a84ff"
+ACCENT_HOVER = "#3395ff"
+BORDER       = "#3a3a3c"
+SUCCESS      = "#30d158"
+DANGER       = "#ff453a"
+DANGER_HOVER = "#ff6961"
+
+
+# ─── Languages for transcription ─────────────────────────────
 TOP_LANGUAGES = [
     ("English", "en"),
     ("Spanish", "es"),
@@ -211,7 +223,7 @@ for name, code in ALL_LANGUAGES:
 LANG_CODE_TO_NAME = {code: name for name, code in ALL_LANGUAGES}
 
 
-# ─── Языки интерфейса (i18n) ─────────────────────────────────
+# ─── UI languages (i18n) ─────────────────────────────────────
 UI_LANGUAGES = {
     "en": "English",
     "ru": "Русский",
@@ -230,7 +242,7 @@ UI_LANGUAGES = {
 UI_LANG_NAME_TO_CODE = {v: k for k, v in UI_LANGUAGES.items()}
 
 
-# ─── Размеры шрифта ──────────────────────────────────────────
+# ─── Font sizes ──────────────────────────────────────────────
 FONT_SIZES = {
     "small":  {"ui": 10, "title": 18, "small": 9,  "mono": 9,  "btn": 10},
     "medium": {"ui": 12, "title": 22, "small": 10, "mono": 10, "btn": 11},
@@ -240,20 +252,20 @@ FONT_SIZES = {
 FONT_SIZE_ORDER = ["small", "medium", "large"]
 
 
-# ─── Валидация файлов ────────────────────────────────────────
+# ─── File validation ─────────────────────────────────────────
 WARN_DURATION_MIN = 60
 WARN_ESTIMATED_TIME_MIN = 30
 REALTIME_FACTOR = 10
 
 
-# ─── Звуки завершения ────────────────────────────────────────
+# ─── Sounds ──────────────────────────────────────────────────
 SOUND_DONE = "/System/Library/Sounds/Glass.aiff"
 SOUND_ERROR = "/System/Library/Sounds/Basso.aiff"
 
 
-# ─── Функции для языка расшифровки ───────────────────────────
+# ─── Transcription language helpers ──────────────────────────
 def get_combo_values():
-    """Значения для Combobox языков расшифровки (с разделителями)."""
+    """Values for transcription language combobox (with separators)."""
     from i18n import t
     values = [t("lang_auto"), t("sep_popular")]
     values.extend([name for name, _ in TOP_LANGUAGES])
@@ -263,33 +275,33 @@ def get_combo_values():
 
 
 def is_separator(value):
-    """True, если значение — разделитель."""
+    """True if the value is a non-selectable separator."""
     from i18n import t
     return value in (t("sep_popular"), t("sep_all"))
 
 
 def get_lang_name_by_code(code):
-    """Название языка по коду ISO 639-1. None если не найдено."""
+    """Language name by ISO 639-1 code. None if not found."""
     if not code:
         return None
     return LANG_CODE_TO_NAME.get(code.lower())
 
 
 def get_world_lang_names():
-    """Названия топ-15 языков (100+ млн говорящих)."""
+    """Names of the top-15 languages."""
     return [name for name, _ in WORLD_LANGUAGES]
 
 
-# ─── Функции для модели ──────────────────────────────────────
+# ─── Model helpers ───────────────────────────────────────────
 def get_model_choices():
-    """Значения для Combobox моделей. Локализованный «Авто» впереди."""
+    """Values for model combobox. Localized 'Auto' first."""
     from i18n import t
     from core.models import find_models
     return [t("model_auto")] + find_models()
 
 
 def model_to_internal(value):
-    """Локализованное значение → внутреннее."""
+    """Localized value -> internal."""
     from i18n import t
     if value == t("model_auto"):
         return "Авто"
@@ -297,14 +309,14 @@ def model_to_internal(value):
 
 
 def model_to_display(internal_value):
-    """Внутреннее значение → локализованное."""
+    """Internal value -> localized."""
     from i18n import t
     if internal_value == "Авто":
         return t("model_auto")
     return internal_value
 
 
-# ─── Дефолтные настройки ─────────────────────────────────────
+# ─── Default settings ────────────────────────────────────────
 DEFAULT_SETTINGS = {
     "lang": "English",
     "ui_lang": "en",
@@ -319,24 +331,9 @@ DEFAULT_SETTINGS = {
 }
 
 
-# ─── Палитра (тёмная тема) ───────────────────────────────────
-BG           = "#1e1e1e"
-BG_CARD      = "#252528"
-BG_INPUT     = "#2c2c2e"
-FG           = "#e8e8e8"
-FG_SUBTLE    = "#8e8e93"
-FG_DIM       = "#6c6c70"
-ACCENT       = "#0a84ff"
-ACCENT_HOVER = "#3395ff"
-BORDER       = "#3a3a3c"
-SUCCESS      = "#30d158"
-DANGER       = "#ff453a"
-DANGER_HOVER = "#ff6961"
-
-
-# ─── Функции для шрифта ──────────────────────────────────────
+# ─── Font helpers ────────────────────────────────────────────
 def get_font(size_key=None, kind="ui"):
-    """Возвращает кортеж шрифта. kind: ui | title | small | mono | btn."""
+    """Returns a font tuple. kind: ui | title | small | mono | btn."""
     key = size_key or "medium"
     if key not in FONT_SIZES:
         key = "medium"

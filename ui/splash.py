@@ -1,7 +1,8 @@
 """Splash-окно при запуске приложения."""
 import tkinter as tk
 
-from config import BG, FG, FG_SUBTLE, get_icon_base64
+from config import BG, FG, FG_SUBTLE
+from core.utils import get_icon_base64
 
 
 class Splash:

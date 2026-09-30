@@ -1,4 +1,6 @@
-"""Главное окно Vox."""
+"""Vox main window."""
+import os
+import sys
 import re
 import time
 import threading
@@ -15,8 +17,7 @@ from config import (
     get_lang_name_by_code, get_font,
     BG, BG_CARD, BG_INPUT, FG, FG_SUBTLE, FG_DIM,
     ACCENT, ACCENT_HOVER, BORDER, SUCCESS, DANGER, DANGER_HOVER,
-    LOG_FILE,
-    WARN_DURATION_MIN,
+    LOG_FILE, WARN_DURATION_MIN,
     FONT_SIZE_ORDER,
 )
 import i18n
@@ -25,6 +26,7 @@ from core.state import request_cancel, reset_cancel
 from core.settings import load_settings, save_settings
 from core.models import resolve_model
 from core.cache import cleanup_cache, clear_all_cache, cache_size_mb
+from core.updater import check_for_update_if_due
 from core.utils import (
     check_deps, get_icon_base64, notify, open_in_finder, open_file, fmt_time,
     fmt_size, play_sound, get_media_info, estimate_processing_time,
@@ -37,7 +39,7 @@ from ui.about import show_about
 logger = logging.getLogger(__name__)
 
 
-# ─── Размеры главного окна ───────────────────────────────────
+# ─── Window sizes ────────────────────────────────────────────
 WIN_BASE_W = 760
 WIN_BASE_H = 1020
 WIN_MIN_W = 680
@@ -46,13 +48,16 @@ WIN_MIN_H = 900
 SETTINGS_COLS_WIDE = 800
 SETTINGS_COLS_NARROW = 2
 
+# Delay before the auto update check kicks in after startup, ms.
+AUTO_UPDATE_DELAY_MS = 1500
+
 
 def _font_label(key):
     return t(f"font_{key}")
 
 
 # ═══════════════════════════════════════════════════════════════
-#  Точка входа
+#  Entry point
 # ═══════════════════════════════════════════════════════════════
 def run_gui(initial_files=None):
     try:
@@ -104,13 +109,48 @@ def run_gui(initial_files=None):
     root.deiconify()
     root.lift()
 
+    # Kick off the background update check once the window is up.
+    root.after(AUTO_UPDATE_DELAY_MS, lambda: _auto_check_update(root))
+
     root.mainloop()
 
 
 # ═══════════════════════════════════════════════════════════════
-#  Пересборка интерфейса
+#  Auto update check on startup
+# ═══════════════════════════════════════════════════════════════
+def _auto_check_update(root):
+    """
+    Silent background check. If a newer version is found, opens the
+    same dialog the manual "Check for updates" button in About uses.
+    Does nothing on network failure or when no update is due.
+    """
+    def worker():
+        try:
+            data = check_for_update_if_due()
+        except Exception as e:
+            logger.error(f"auto update check failed: {e}")
+            return
+
+        if not data:
+            return
+
+        def open_window():
+            try:
+                from ui.updater_window import show_update_window
+                show_update_window(root, data)
+            except Exception as e:
+                logger.error(f"could not open update window: {e}")
+
+        root.after(0, open_window)
+
+    threading.Thread(target=worker, daemon=True).start()
+
+
+# ═══════════════════════════════════════════════════════════════
+#  UI rebuild
 # ═══════════════════════════════════════════════════════════════
 def _rebuild_ui(root):
+    """Rebuild UI without flicker."""
     root.attributes("-alpha", 0.0)
     try:
         for w in root.winfo_children():
@@ -122,7 +162,7 @@ def _rebuild_ui(root):
 
 
 # ═══════════════════════════════════════════════════════════════
-#  Авто-подстройка размера окна
+#  Autosize
 # ═══════════════════════════════════════════════════════════════
 def _autosize_window(root):
     root.update_idletasks()
@@ -141,7 +181,7 @@ def _autosize_window(root):
 
 
 # ═══════════════════════════════════════════════════════════════
-#  Построение интерфейса
+#  Build UI
 # ═══════════════════════════════════════════════════════════════
 def _build_ui(root):
     settings = load_settings()
@@ -162,9 +202,7 @@ def _build_ui(root):
     f_btn = get_font(font_size_key, "btn")
 
     family = f_ui[0]
-    # Подписи — крупные и жирные
     label_font = (family, f_ui[1] + 1, "bold")
-    # Значение внутри combobox — обычный размер, без плюсов
     combo_font = (family, f_ui[1])
 
     root.option_add("*TCombobox*Listbox.font", combo_font)
@@ -201,7 +239,7 @@ def _build_ui(root):
 
     ui_lang_var = tk.StringVar(value=UI_LANGUAGES[ui_lang_code])
 
-    # ── Заголовок ────────────────────────────────────────────
+    # ── Header ───────────────────────────────────────────────
     header = tk.Frame(root, bg=BG)
     header.pack(fill="x", padx=24, pady=(20, 4))
 
@@ -213,15 +251,16 @@ def _build_ui(root):
     ttk.Label(title_block, text=t("app_subtitle"),
               style="Subtle.TLabel").pack(anchor="w", pady=(2, 0))
 
-    ui_lang_block = tk.Frame(header, bg=BG)
-    ui_lang_block.pack(side="right", anchor="n")
+    # Right side: interface language combobox only.
+    lang_col = tk.Frame(header, bg=BG)
+    lang_col.pack(side="right", anchor="n")
 
-    tk.Label(ui_lang_block, text=t("ui_lang_label"),
+    tk.Label(lang_col, text=t("ui_lang_label"),
              bg=BG, fg=FG_DIM,
              font=f_small).pack(anchor="e", pady=(0, 4))
 
     ui_lang_combo = ttk.Combobox(
-        ui_lang_block, textvariable=ui_lang_var,
+        lang_col, textvariable=ui_lang_var,
         values=list(UI_LANGUAGES.values()),
         state="readonly", width=16, font=combo_font)
     ui_lang_combo.pack(anchor="e")
@@ -230,8 +269,8 @@ def _build_ui(root):
         if is_running["value"]:
             messagebox.showwarning(
                 "Vox",
-                "Нельзя сменить язык во время работы.\n"
-                "Дождитесь завершения или отмените.")
+                "Cannot change language while a job is running.\n"
+                "Wait for it to finish or cancel.")
             ui_lang_var.set(UI_LANGUAGES[i18n.get_lang()])
             return
 
@@ -254,7 +293,7 @@ def _build_ui(root):
 
     ui_lang_combo.bind("<<ComboboxSelected>>", on_ui_lang_change)
 
-    # ── Карточка файлов ──────────────────────────────────────
+    # ── Files card ───────────────────────────────────────────
     files_card = tk.Frame(root, bg=BG_CARD)
     files_card.pack(fill="both", expand=True, padx=24, pady=(16, 0))
 
@@ -298,9 +337,9 @@ def _build_ui(root):
         paths = filedialog.askopenfilenames(
             title=t("btn_add_files"),
             filetypes=[
-                ("Медиа", "*.mp4 *.mov *.mkv *.avi *.webm *.m4a "
+                ("Media", "*.mp4 *.mov *.mkv *.avi *.webm *.m4a "
                           "*.mp3 *.wav *.aac *.flac *.ogg"),
-                ("Все файлы", "*.*")])
+                ("All files", "*.*")])
         add_files(paths)
 
     def pick_folder():
@@ -344,7 +383,7 @@ def _build_ui(root):
                  font=(f_small[0], f_small[1], "italic")).pack(
                      anchor="w", pady=(8, 0))
 
-    # ── Настройки (адаптивная раскладка) ─────────────────────
+    # ── Settings card ────────────────────────────────────────
     opts_card = tk.Frame(root, bg=BG_CARD)
     opts_card.pack(fill="x", padx=24, pady=(12, 0))
 
@@ -417,7 +456,6 @@ def _build_ui(root):
 
     cells = []
 
-    # 1. Язык
     c_lang = _cell_with_label(t("label_lang"))
     lang_combo = ttk.Combobox(
         c_lang, textvariable=lang_var,
@@ -427,7 +465,6 @@ def _build_ui(root):
     lang_combo.bind("<<ComboboxSelected>>", on_lang_selected)
     cells.append(c_lang)
 
-    # 2. Модель
     c_model = _cell_with_label(t("label_model"))
     ttk.Combobox(
         c_model, textvariable=model_var,
@@ -436,7 +473,6 @@ def _build_ui(root):
             anchor="w", fill="x")
     cells.append(c_model)
 
-    # 3. Размер шрифта
     c_font = _cell_with_label(t("label_font_size"))
     font_size_combo = ttk.Combobox(
         c_font, textvariable=font_size_var,
@@ -446,7 +482,6 @@ def _build_ui(root):
     font_size_combo.bind("<<ComboboxSelected>>", on_font_size_selected)
     cells.append(c_font)
 
-    # 4. Одновременных задач
     c_workers = _cell_with_label(t("label_workers"))
     ttk.Combobox(
         c_workers, textvariable=workers_var,
@@ -455,7 +490,6 @@ def _build_ui(root):
             anchor="w", fill="x")
     cells.append(c_workers)
 
-    # 5–8. Галочки
     cells.append(_cell_checkbox(t("chk_vad"), vad_var))
     cells.append(_cell_checkbox(t("chk_cache"), cache_var))
     cells.append(_cell_checkbox(t("chk_srt"), srt_var))
@@ -490,7 +524,7 @@ def _build_ui(root):
     opts_inner.bind("<Configure>", _relayout_settings)
     opts_inner.after(50, _relayout_settings)
 
-    # ── Прогресс ─────────────────────────────────────────────
+    # ── Progress ─────────────────────────────────────────────
     prog_wrap = tk.Frame(root, bg=BG)
     prog_wrap.pack(fill="x", padx=24, pady=(16, 0))
 
@@ -528,7 +562,7 @@ def _build_ui(root):
              bg=BG, fg=ACCENT,
              font=(f_ui[0], f_ui[1], "bold")).pack(side="right")
 
-    # ── Нижние кнопки ────────────────────────────────────────
+    # ── Bottom buttons ───────────────────────────────────────
     run_row = tk.Frame(root, bg=BG)
     run_row.pack(pady=(16, 0))
 
@@ -815,7 +849,7 @@ def _build_ui(root):
     if is_running["value"]:
         set_running(True)
 
-    # ── Служебные кнопки ─────────────────────────────────────
+    # ── Footer ───────────────────────────────────────────────
     def act_about():
         show_about(root)
 
@@ -862,7 +896,7 @@ def _build_ui(root):
 
     root.bind_all("<Escape>", hk_cancel)
 
-    # ── Закрытие ─────────────────────────────────────────────
+    # ── Close ────────────────────────────────────────────────
     def on_close():
         if is_running["value"]:
             if not messagebox.askyesno("Vox", "Transcription running. Quit?"):
@@ -890,7 +924,6 @@ def _setup_styles():
                     font=("Helvetica", 22, "bold"))
     style.configure("Section.TLabel", background=BG_CARD, foreground=FG,
                     font=("Helvetica", 12, "bold"))
-    # Уменьшенный padding → поля Combobox ниже
     style.configure("TCombobox",
                     fieldbackground=BG_INPUT,
                     background=BG_INPUT,

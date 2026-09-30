@@ -14,21 +14,26 @@ from core.utils import get_duration
 from core.models import pick_auto_model
 from core.transcriber import transcribe_one
 
+
 # ─── Логирование ─────────────────────────────────────────────
-logger = logging.getLogger("vox")
-logger.setLevel(logging.DEBUG)
+# Configure the ROOT logger so every module in the project
+# (core.*, ui.*) ends up in the same file and on the same stream.
+_root_logger = logging.getLogger()
+_root_logger.setLevel(logging.DEBUG)
 
 _fh = logging.FileHandler(LOG_FILE, encoding="utf-8")
 _fh.setLevel(logging.DEBUG)
 _fh.setFormatter(logging.Formatter(
-    "%(asctime)s [%(levelname)s] %(message)s",
+    "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S"))
-logger.addHandler(_fh)
+_root_logger.addHandler(_fh)
 
 _sh = logging.StreamHandler()
 _sh.setLevel(logging.INFO)
-_sh.setFormatter(logging.Formatter("[%(levelname)s] %(message)s"))
-logger.addHandler(_sh)
+_sh.setFormatter(logging.Formatter("[%(levelname)s] %(name)s: %(message)s"))
+_root_logger.addHandler(_sh)
+
+logger = logging.getLogger("vox")
 
 logger.info(f"Vox {__version__} запущен")
 logger.info(f"Аргументы запуска: {sys.argv}")

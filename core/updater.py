@@ -3,10 +3,10 @@ Update checker and installer for Vox.
 
 How it works:
 
-1. Once a day (or on demand from About) the app fetches version.json
+1. On startup, and once a day after that, the app fetches version.json
    from the repo. It holds the current version and a download URL for
    the .zip.
-2. If the remote version is newer, the user sees a banner.
+2. If the remote version is newer, the user sees the update dialog.
 3. On confirm, the .zip is downloaded, unpacked into /tmp.
 4. A helper bash script waits for Vox to exit, replaces the .app in
    /Applications and launches it again.
@@ -96,8 +96,9 @@ def fetch_manifest():
 
 def check_for_update():
     """
-    Returns dict {'version', 'download_url', 'notes'} if a newer version
-    exists, otherwise None.
+    One-shot check used by the manual button. Always hits the network.
+    Returns dict {'version', 'download_url', 'notes'} if a newer
+    version exists, otherwise None.
     """
     data = fetch_manifest()
     if not data:
@@ -116,8 +117,9 @@ def check_for_update():
     return data
 
 
+# ─── Time-gated auto check ───────────────────────────────────
 def should_check():
-    """Has enough time passed since the last check?"""
+    """Has enough time passed since the last successful check?"""
     try:
         if not LAST_CHECK_FILE.exists():
             return True
@@ -129,7 +131,7 @@ def should_check():
 
 
 def mark_checked():
-    """Remember the time of the last check."""
+    """Remember the time of the last successful check."""
     try:
         LAST_CHECK_FILE.write_text(str(time.time()))
     except Exception as e:
@@ -138,13 +140,38 @@ def mark_checked():
 
 def check_for_update_if_due():
     """
-    Checks for updates if enough time has passed since the last check.
+    Auto check used on startup. Only hits the network if at least
+    UPDATE_CHECK_INTERVAL_HOURS have passed since the last successful
+    fetch. If the fetch fails (offline, DNS issue, ...), the interval
+    file is NOT updated, so the next launch will retry.
+
     Safe to call from a background thread.
+    Returns the manifest dict if a newer version is available,
+    otherwise None.
     """
     if not should_check():
+        logger.debug("update: skipping auto check, not due yet")
         return None
+
+    data = fetch_manifest()
+    if data is None:
+        # Fetch failed. Don't touch the marker, retry next launch.
+        return None
+
+    # Fetch succeeded — remember this moment.
     mark_checked()
-    return check_for_update()
+
+    remote_v = data.get("version")
+    if not remote_v:
+        logger.info("update: version.json has no 'version' field")
+        return None
+
+    if not is_newer(remote_v, __version__):
+        logger.info(f"update: {remote_v} is not newer than {__version__}")
+        return None
+
+    logger.info(f"update: version {remote_v} is available")
+    return data
 
 
 # ─── Download ────────────────────────────────────────────────

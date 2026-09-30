@@ -1,4 +1,4 @@
-"""Локализация интерфейса Vox (i18n)."""
+"""Vox interface localization (i18n)."""
 
 _current = {"lang": "en"}
 
@@ -1226,7 +1226,7 @@ TRANSLATIONS = {
     },
 
     # ═══════════════════════════════════════════════════════════
-    #  SRPSKI (ћирилица)
+    #  SRPSKI (Cyrillic)
     # ═══════════════════════════════════════════════════════════
     "sr": {
         "app_subtitle":        "Говор у текст · локално · whisper.cpp",
@@ -1339,7 +1339,7 @@ TRANSLATIONS = {
 
 
 def set_lang(code):
-    """Устанавливает язык интерфейса."""
+    """Set interface language."""
     _current["lang"] = code if code in TRANSLATIONS else "en"
 
 
@@ -1348,7 +1348,7 @@ def get_lang():
 
 
 def t(key, **kwargs):
-    """Перевод строки по ключу с fallback на английский."""
+    """Translate a string with fallback to English."""
     lang = _current["lang"]
     s = TRANSLATIONS.get(lang, {}).get(key)
     if s is None:

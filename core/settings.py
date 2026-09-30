@@ -1,4 +1,4 @@
-"""Загрузка и сохранение настроек в JSON."""
+"""Settings load and save."""
 import json
 import os
 import locale
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def _detect_system_lang():
-    """Определяет язык системы. Возвращает English, если не распознан."""
+    """Detect the system language. Returns English if unknown."""
     code = None
 
     for var in ("LC_ALL", "LC_MESSAGES", "LANG", "LANGUAGE"):
@@ -37,10 +37,10 @@ def _detect_system_lang():
 
     name = get_lang_name_by_code(code) if code else None
     if name:
-        logger.info(f"Язык системы: {code} → {name}")
+        logger.info(f"System language: {code} -> {name}")
         return name
 
-    logger.info(f"Язык системы не распознан, ставим English")
+    logger.info("System language not detected, using English")
     return "English"
 
 
@@ -53,14 +53,16 @@ def load_settings():
             if merged.get("lang") not in LANGUAGES:
                 merged["lang"] = "English"
 
-            # Если ui_lang нет — используем язык системы
             if "ui_lang" not in merged:
                 merged["ui_lang"] = _detect_system_lang()
 
-            logger.info(f"Настройки загружены: {merged}")
+            # Drop any stale keys that are no longer part of the app.
+            merged.pop("theme", None)
+
+            logger.info(f"Settings loaded: {merged}")
             return merged
         except Exception as e:
-            logger.warning(f"Не удалось прочитать настройки: {e}")
+            logger.warning(f"Could not read settings: {e}")
 
     defaults = dict(DEFAULT_SETTINGS)
     sys_lang = _detect_system_lang()
@@ -71,9 +73,11 @@ def load_settings():
 
 def save_settings(data):
     try:
+        clean = dict(data)
+        clean.pop("theme", None)
         SETTINGS_FILE.write_text(
-            json.dumps(data, ensure_ascii=False, indent=2),
+            json.dumps(clean, ensure_ascii=False, indent=2),
             encoding="utf-8")
-        logger.debug(f"Настройки сохранены: {data}")
+        logger.debug(f"Settings saved: {clean}")
     except Exception as e:
-        logger.warning(f"Не удалось сохранить настройки: {e}")
+        logger.warning(f"Could not save settings: {e}")
