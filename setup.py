@@ -16,9 +16,12 @@ from pathlib import Path
 
 from setuptools import setup
 
-
 APP = ['main.py']
-DATA_FILES = ['icon_data.py']
+DATA_FILES = [
+    'icon_data.py',
+    'CHANGELOG.md',
+    ('docs/changelog', ['docs/changelog/ru.md']),
+]
 
 OPTIONS = {
     'argv_emulation': False,

@@ -8,6 +8,9 @@ TRANSLATIONS = {
     #  ENGLISH
     # ═══════════════════════════════════════════════════════════
     "en": {
+        "changelog_title": "What's new",
+        "changelog_missing": "Changelog file not found",
+        "changelog_close_btn": "Close",
         "btn_history":         "History",
         "history_title": "History",
         "history_empty": "History is empty",
@@ -140,6 +143,9 @@ TRANSLATIONS = {
     #  РУССКИЙ
     # ═══════════════════════════════════════════════════════════
     "ru": {
+        "changelog_title": "Что нового",
+        "changelog_missing": "Файл изменений не найден",
+        "changelog_close_btn": "Закрыть",
         "btn_history":         "История",
         "history_title": "История",
         "history_empty": "История пуста",
@@ -272,6 +278,9 @@ TRANSLATIONS = {
     #  ESPAÑOL
     # ═══════════════════════════════════════════════════════════
     "es": {
+        "changelog_title": "Novedades",
+        "changelog_missing": "Archivo de cambios no encontrado",
+        "changelog_close_btn": "Cerrar",
         "btn_history":         "Historial",
         "history_title": "Historial",
         "history_empty": "El historial está vacío",
@@ -404,6 +413,9 @@ TRANSLATIONS = {
     #  中文
     # ═══════════════════════════════════════════════════════════
     "zh": {
+        "changelog_title": "更新日志",
+        "changelog_missing": "未找到更新日志文件",
+        "changelog_close_btn": "关闭",
         "btn_history":         "历史",
         "history_title": "历史",
         "history_empty": "历史为空",
@@ -536,6 +548,9 @@ TRANSLATIONS = {
     #  हिन्दी
     # ═══════════════════════════════════════════════════════════
     "hi": {
+        "changelog_title": "नया क्या है",
+        "changelog_missing": "चेंजलॉग फ़ाइल नहीं मिली",
+        "changelog_close_btn": "बंद करें",
         "btn_history":         "इतिहास",
         "history_title": "इतिहास",
         "history_empty": "इतिहास खाली है",
@@ -668,6 +683,9 @@ TRANSLATIONS = {
     #  العربية
     # ═══════════════════════════════════════════════════════════
     "ar": {
+        "changelog_title": "الجديد",
+        "changelog_missing": "لم يتم العثور على ملف التغييرات",
+        "changelog_close_btn": "إغلاق",
         "btn_history":         "السجل",
         "history_title": "السجل",
         "history_empty": "السجل فارغ",
@@ -800,6 +818,9 @@ TRANSLATIONS = {
     #  PORTUGUÊS
     # ═══════════════════════════════════════════════════════════
     "pt": {
+        "changelog_title": "Novidades",
+        "changelog_missing": "Arquivo de alterações não encontrado",
+        "changelog_close_btn": "Fechar",
         "btn_history":         "Histórico",
         "history_title": "Histórico",
         "history_empty": "O histórico está vazio",
@@ -932,6 +953,9 @@ TRANSLATIONS = {
     #  DEUTSCH
     # ═══════════════════════════════════════════════════════════
     "de": {
+        "changelog_title": "Neuigkeiten",
+        "changelog_missing": "Changelog-Datei nicht gefunden",
+        "changelog_close_btn": "Schließen",
         "btn_history":         "Verlauf",
         "history_title": "Verlauf",
         "history_empty": "Der Verlauf ist leer",
@@ -1064,6 +1088,9 @@ TRANSLATIONS = {
     #  日本語
     # ═══════════════════════════════════════════════════════════
     "ja": {
+        "changelog_title": "新機能",
+        "changelog_missing": "変更履歴ファイルが見つかりません",
+        "changelog_close_btn": "閉じる",
         "btn_history":         "履歴",
         "history_title": "履歴",
         "history_empty": "履歴は空です",
@@ -1196,6 +1223,9 @@ TRANSLATIONS = {
     #  FRANÇAIS
     # ═══════════════════════════════════════════════════════════
     "fr": {
+        "changelog_title": "Nouveautés",
+        "changelog_missing": "Fichier des nouveautés introuvable",
+        "changelog_close_btn": "Fermer",
         "btn_history":         "Historique",
         "history_title": "Historique",
         "history_empty": "L'historique est vide",
@@ -1328,6 +1358,9 @@ TRANSLATIONS = {
     #  POLSKI
     # ═══════════════════════════════════════════════════════════
     "pl": {
+        "changelog_title": "Nowości",
+        "changelog_missing": "Nie znaleziono pliku zmian",
+        "changelog_close_btn": "Zamknij",
         "btn_history":         "Historia",
         "history_title": "Historia",
         "history_empty": "Historia jest pusta",
@@ -1460,6 +1493,9 @@ TRANSLATIONS = {
     #  SRPSKI (Cyrillic)
     # ═══════════════════════════════════════════════════════════
     "sr": {
+        "changelog_title": "Шта је ново",
+        "changelog_missing": "Датотека измена није пронађена",
+        "changelog_close_btn": "Затвори",
         "btn_history":         "Историја",
         "history_title": "Историја",
         "history_empty": "Историја је празна",

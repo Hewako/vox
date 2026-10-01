@@ -1,4 +1,4 @@
-"""Окно «О программе Vox»."""
+"""Vox About window."""
 import sys
 import threading
 import platform
@@ -12,6 +12,7 @@ from config import (
 )
 from i18n import t
 from ui.widgets import FlatButton
+from ui.changelog_window import show_changelog_window
 from core.cache import cache_size_mb
 from core.utils import open_file, open_in_finder
 from core.updater import check_for_update
@@ -45,9 +46,37 @@ def show_about(root):
 
     tk.Label(top, text="Vox", bg=BG, fg=FG,
              font=("Helvetica", 30, "bold")).pack(anchor="w", pady=(10, 0))
-    tk.Label(top, text=t("about_version", v=__version__),
+
+    ver_row = tk.Frame(top, bg=BG)
+    ver_row.pack(anchor="w", pady=(2, 0))
+
+    tk.Label(ver_row, text=t("about_version", v=__version__),
              bg=BG, fg=FG_SUBTLE,
-             font=("Helvetica", 13)).pack(anchor="w", pady=(2, 0))
+             font=("Helvetica", 13)).pack(side="left")
+
+    tk.Label(ver_row, text="  ·  ",
+             bg=BG, fg=FG_DIM,
+             font=("Helvetica", 13)).pack(side="left")
+
+    whats_new = tk.Label(
+        ver_row,
+        text=t("changelog_title"),
+        bg=BG, fg=ACCENT,
+        font=("Helvetica", 13, "underline"),
+        cursor="pointinghand",
+    )
+    whats_new.pack(side="left")
+
+    def open_changelog(event=None):
+        show_changelog_window(win)
+        return "break"
+
+    whats_new.bind("<Button-1>", open_changelog)
+    whats_new.bind("<Enter>",
+                   lambda e: whats_new.config(fg=FG))
+    whats_new.bind("<Leave>",
+                   lambda e: whats_new.config(fg=ACCENT))
+
     tk.Label(top, text=t("about_description"),
              bg=BG, fg=FG_SUBTLE,
              font=("Helvetica", 11)).pack(anchor="w", pady=(8, 0))
@@ -83,7 +112,6 @@ def show_about(root):
         (t("about_arch"), platform.machine()),
     ])
 
-    # Ссылки
     links_card = tk.Frame(win, bg=BG_CARD)
     links_card.pack(fill="x", padx=24, pady=(8, 0))
     links_inner = tk.Frame(links_card, bg=BG_CARD)
@@ -108,13 +136,11 @@ def show_about(root):
                      bg=BG_CARD, fg=FG_DIM,
                      font=("Helvetica", 11)).pack(side="left")
 
-    # ── Строка статуса обновления ────────────────────────────
     update_status_var = tk.StringVar(value="")
     update_status_lbl = tk.Label(win, textvariable=update_status_var,
                                   bg=BG, fg=FG_SUBTLE,
                                   font=("Helvetica", 10))
 
-    # ── Кнопки ───────────────────────────────────────────────
     btn_row = tk.Frame(win, bg=BG)
     btn_row.pack(fill="x", padx=24, pady=(12, 22))
 
@@ -173,7 +199,6 @@ def show_about(root):
                padx=14, pady=8,
                font=("Helvetica", 11)).pack(side="right")
 
-    # ── Подпись снизу ────────────────────────────────────────
     tk.Label(win,
              text=f"Vox {__version__} · Made by Hewako",
              bg=BG, fg=FG_DIM,
