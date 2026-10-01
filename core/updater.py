@@ -233,8 +233,19 @@ def install_update(zip_path, on_status=None):
     tmp_dir = Path(tempfile.mkdtemp(prefix="vox_update_"))
     on_status("Unpacking…")
 
-    with zipfile.ZipFile(zip_path) as z:
-        z.extractall(tmp_dir)
+    # Use ditto instead of zipfile.extractall so that unix permissions
+    # (in particular the executable bit on Contents/MacOS/*) are
+    # preserved. zipfile.extractall() silently drops them, which makes
+    # the resulting .app impossible to launch.
+    ditto = "/usr/bin/ditto"
+    unpack = subprocess.run(
+        [ditto, "-x", "-k", str(zip_path), str(tmp_dir)],
+        capture_output=True, text=True,
+    )
+    if unpack.returncode != 0:
+        raise RuntimeError(
+            f"ditto failed to unpack archive: {unpack.stderr.strip()}"
+        )
 
     new_app = None
     for candidate in tmp_dir.rglob("Vox.app"):
@@ -244,6 +255,13 @@ def install_update(zip_path, on_status=None):
     if new_app is None or not new_app.exists():
         raise RuntimeError("Vox.app not found inside the archive")
 
+    # Sanity check: the main binary must be executable. If not, fix it
+    # so we do not ship a broken bundle if ditto misbehaves.
+    vox_bin = new_app / "Contents" / "MacOS" / "Vox"
+    if vox_bin.exists() and not os.access(vox_bin, os.X_OK):
+        logger.warning("update: Vox binary is not executable, fixing perms")
+        os.chmod(vox_bin, 0o755)
+
     # Move the unpacked bundle out of tmp_dir so the cleanup
     # at the end doesn't wipe it.
     staging = Path(tempfile.mkdtemp(prefix="vox_staging_"))
@@ -252,22 +270,48 @@ def install_update(zip_path, on_status=None):
 
     # Helper script lives outside temp dirs so it survives cleanup.
     helper = Path(tempfile.gettempdir()) / "vox_update_helper.sh"
+    helper_log = Path.home() / "Library" / "Logs" / "Vox-update-helper.log"
+    lsregister = (
+        "/System/Library/Frameworks/CoreServices.framework/"
+        "Frameworks/LaunchServices.framework/Support/lsregister"
+    )
+
     helper.write_text(f"""#!/bin/bash
-# Wait for Vox to exit
+exec >> "{helper_log}" 2>&1
+set -x
+echo "===== $(date) helper started ====="
+echo "current_app={current_app}"
+echo "staged_app={staged_app}"
+
 sleep 1
 
-# Swap the app bundle
+echo "removing old app..."
 rm -rf "{current_app}"
+
+echo "moving new app into place..."
 mv "{staged_app}" "{current_app}"
+
+echo "clearing xattrs..."
 xattr -cr "{current_app}" 2>/dev/null
 
-# Launch the updated Vox
+echo "re-registering with LaunchServices..."
+"{lsregister}" -f "{current_app}" || true
+sleep 1
+
+echo "launching via open..."
 open "{current_app}"
 
-# Clean up
+sleep 3
+if ! pgrep -f "{current_app}/Contents/MacOS/Vox" > /dev/null; then
+    echo "open failed, falling back to direct launch"
+    "{current_app}/Contents/MacOS/Vox" &
+fi
+
+echo "cleaning up..."
 rm -rf "{staging}"
 rm -rf "{tmp_dir}"
 rm -f "{helper}"
+echo "===== helper done ====="
 """)
     os.chmod(helper, 0o755)
 
