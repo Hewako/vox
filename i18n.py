@@ -8,6 +8,27 @@ TRANSLATIONS = {
     #  ENGLISH
     # ═══════════════════════════════════════════════════════════
     "en": {
+        "error_prefix": "Error",
+        "error_E001": "Source file not found",
+        "error_E002": "Could not read media information",
+        "error_E003": "Unsupported media format",
+        "error_E004": "Output folder is not writable",
+        "error_E010": "whisper-cli not found",
+        "error_E011": "ffmpeg not found",
+        "error_E012": "ffprobe not found",
+        "error_E013": "Whisper model not found",
+        "error_E020": "Whisper failed",
+        "error_E021": "FFmpeg failed",
+        "error_E022": "Process timed out",
+        "error_E023": "Cancelled by user",
+        "error_E030": "Out of memory",
+        "error_E031": "Out of disk space",
+        "error_E032": "System resources exhausted",
+        "error_E099": "Unknown error",
+        "errors_window_title": "Error codes",
+        "errors_window_intro": "Every failure in Vox is classified with a short code. Use it to look up the cause and possible fix.",
+        "errors_window_close": "Close",
+        "about_btn_errors": "Errors",
         "changelog_title": "What's new",
         "changelog_missing": "Changelog file not found",
         "changelog_close_btn": "Close",
@@ -143,6 +164,27 @@ TRANSLATIONS = {
     #  РУССКИЙ
     # ═══════════════════════════════════════════════════════════
     "ru": {
+        "error_prefix": "Ошибка",
+        "error_E001": "Исходный файл не найден",
+        "error_E002": "Не удалось прочитать информацию о файле",
+        "error_E003": "Неподдерживаемый формат",
+        "error_E004": "Папка для сохранения недоступна для записи",
+        "error_E010": "whisper-cli не найден",
+        "error_E011": "ffmpeg не найден",
+        "error_E012": "ffprobe не найден",
+        "error_E013": "Модель Whisper не найдена",
+        "error_E020": "Ошибка Whisper",
+        "error_E021": "Ошибка FFmpeg",
+        "error_E022": "Превышено время ожидания",
+        "error_E023": "Отменено пользователем",
+        "error_E030": "Недостаточно памяти",
+        "error_E031": "Недостаточно места на диске",
+        "error_E032": "Исчерпаны системные ресурсы",
+        "error_E099": "Неизвестная ошибка",
+        "errors_window_title": "Коды ошибок",
+        "errors_window_intro": "Каждый сбой в Vox имеет короткий код. По нему можно найти причину и возможное решение.",
+        "errors_window_close": "Закрыть",
+        "about_btn_errors": "Ошибки",
         "changelog_title": "Что нового",
         "changelog_missing": "Файл изменений не найден",
         "changelog_close_btn": "Закрыть",
@@ -278,6 +320,7 @@ TRANSLATIONS = {
     #  ESPAÑOL
     # ═══════════════════════════════════════════════════════════
     "es": {
+        "error_prefix": "Error",
         "changelog_title": "Novedades",
         "changelog_missing": "Archivo de cambios no encontrado",
         "changelog_close_btn": "Cerrar",
@@ -413,6 +456,7 @@ TRANSLATIONS = {
     #  中文
     # ═══════════════════════════════════════════════════════════
     "zh": {
+        "error_prefix": "错误",
         "changelog_title": "更新日志",
         "changelog_missing": "未找到更新日志文件",
         "changelog_close_btn": "关闭",
@@ -548,6 +592,7 @@ TRANSLATIONS = {
     #  हिन्दी
     # ═══════════════════════════════════════════════════════════
     "hi": {
+        "error_prefix": "त्रुटि",
         "changelog_title": "नया क्या है",
         "changelog_missing": "चेंजलॉग फ़ाइल नहीं मिली",
         "changelog_close_btn": "बंद करें",
@@ -683,6 +728,7 @@ TRANSLATIONS = {
     #  العربية
     # ═══════════════════════════════════════════════════════════
     "ar": {
+        "error_prefix": "خطأ",
         "changelog_title": "الجديد",
         "changelog_missing": "لم يتم العثور على ملف التغييرات",
         "changelog_close_btn": "إغلاق",
@@ -818,6 +864,7 @@ TRANSLATIONS = {
     #  PORTUGUÊS
     # ═══════════════════════════════════════════════════════════
     "pt": {
+        "error_prefix": "Erro",
         "changelog_title": "Novidades",
         "changelog_missing": "Arquivo de alterações não encontrado",
         "changelog_close_btn": "Fechar",
@@ -953,6 +1000,7 @@ TRANSLATIONS = {
     #  DEUTSCH
     # ═══════════════════════════════════════════════════════════
     "de": {
+        "error_prefix": "Fehler",
         "changelog_title": "Neuigkeiten",
         "changelog_missing": "Changelog-Datei nicht gefunden",
         "changelog_close_btn": "Schließen",
@@ -1088,6 +1136,7 @@ TRANSLATIONS = {
     #  日本語
     # ═══════════════════════════════════════════════════════════
     "ja": {
+        "error_prefix": "エラー",
         "changelog_title": "新機能",
         "changelog_missing": "変更履歴ファイルが見つかりません",
         "changelog_close_btn": "閉じる",
@@ -1223,6 +1272,7 @@ TRANSLATIONS = {
     #  FRANÇAIS
     # ═══════════════════════════════════════════════════════════
     "fr": {
+        "error_prefix": "Erreur",
         "changelog_title": "Nouveautés",
         "changelog_missing": "Fichier des nouveautés introuvable",
         "changelog_close_btn": "Fermer",
@@ -1358,6 +1408,7 @@ TRANSLATIONS = {
     #  POLSKI
     # ═══════════════════════════════════════════════════════════
     "pl": {
+        "error_prefix": "Błąd",
         "changelog_title": "Nowości",
         "changelog_missing": "Nie znaleziono pliku zmian",
         "changelog_close_btn": "Zamknij",
@@ -1493,6 +1544,7 @@ TRANSLATIONS = {
     #  SRPSKI (Cyrillic)
     # ═══════════════════════════════════════════════════════════
     "sr": {
+        "error_prefix": "Грешка",
         "changelog_title": "Шта је ново",
         "changelog_missing": "Датотека измена није пронађена",
         "changelog_close_btn": "Затвори",

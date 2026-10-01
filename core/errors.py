@@ -119,3 +119,25 @@ def classify(exc) -> str:
         return "E002"
 
     return "E099"
+
+
+# ─── Localized description ───────────────────────────────────
+def describe_localized(code: str) -> str:
+    """
+    Return a localized human-readable description for a code.
+
+    Looks up the key `error_<CODE>` in i18n. If the translation is
+    missing, falls back to the short English description from CODES.
+    Unknown codes are treated as E099.
+    """
+    from i18n import t
+
+    if code not in CODES:
+        code = "E099"
+
+    key = f"error_{code}"
+    val = t(key)
+    if val == key:
+        # No translation found — t() returned the key unchanged.
+        return CODES[code]
+    return val
