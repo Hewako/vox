@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from shutil import which
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 
 # ─── PATH fix for .app ───────────────────────────────────────
 _EXTRA = ["/opt/homebrew/bin", "/usr/local/bin"]
