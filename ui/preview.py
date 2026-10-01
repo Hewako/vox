@@ -5,7 +5,6 @@ from i18n import t
 from ui.widgets import FlatButton
 from core.utils import open_in_finder, open_file
 
-
 def show_preview(root, path, previous=None):
     if previous and previous.winfo_exists():
         previous.destroy()

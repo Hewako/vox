@@ -1,17 +1,4 @@
-"""
-Update notification window.
-
-Flow:
-  1. Ready       - "Download and update" + "Later".
-  2. Downloading - progress bar active, buttons disabled.
-  3. Applying    - download finished, install_update() runs.
-                   On success the message changes to "Installed",
-                   then the app closes and the helper script swaps
-                   .app and relaunches Vox.
-  4. Error       - red status, error code, browser opens the
-                   matching section of ERROR_CODES.md on GitHub.
-                   Window stays open until the user closes it.
-"""
+"""Update notification window."""
 import threading
 import logging
 import tempfile
@@ -30,14 +17,11 @@ from ui.widgets import FlatButton
 
 logger = logging.getLogger(__name__)
 
-
 REPO_URL = "https://github.com/Hewako/vox"
-
 
 def _code_url(code: str) -> str:
     """GitHub URL to the ERROR_CODES.md section for a code."""
     return f"{REPO_URL}/blob/main/ERROR_CODES.md#{code.lower()}"
-
 
 def show_update_window(root, manifest, on_later=None):
     """Show the update dialog."""

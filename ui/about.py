@@ -18,13 +18,11 @@ from core.cache import cache_size_mb
 from core.utils import open_file, open_in_finder
 from core.updater import check_for_update
 
-
 LINKS = {
     "whisper.cpp": "https://github.com/ggerganov/whisper.cpp",
     "ffmpeg": "https://ffmpeg.org/",
     "tkinterdnd2": "https://github.com/petasis/tkdnd",
 }
-
 
 def show_about(root):
     win = tk.Toplevel(root)
@@ -210,7 +208,6 @@ def show_about(root):
              text=f"Vox {__version__} · Made by Hewako",
              bg=BG, fg=FG_DIM,
              font=("Helvetica", 10)).pack(pady=(0, 14))
-
 
 def _section(parent, title, rows):
     card = tk.Frame(parent, bg=BG_CARD)

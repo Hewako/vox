@@ -1,16 +1,4 @@
-"""
-Changelog window.
-
-Reads CHANGELOG.md from the project (or from the .app bundle) and
-renders a subset of Markdown into a read-only Text widget:
-
-- # / ## / ### headings
-- - bullet lists
-- blank lines
-- inline **bold** and [text](url) links
-
-No external Markdown library required.
-"""
+"""Changelog window."""
 import logging
 import re
 import sys
@@ -30,13 +18,11 @@ from ui.widgets import FlatButton
 
 logger = logging.getLogger(__name__)
 
-
-# ─── Geometry ────────────────────────────────────────────────
+# Geometry
 WIN_W = 720
 WIN_H = 700
 
-
-# ─── Locate CHANGELOG.md ─────────────────────────────────────
+# Locate CHANGELOG.md
 def _find_changelog():
     """
     Look for a localized CHANGELOG file.
@@ -70,7 +56,6 @@ def _find_changelog():
             return p
     return None
 
-
 def _read_changelog():
     p = _find_changelog()
     if p is None:
@@ -81,10 +66,8 @@ def _read_changelog():
         logger.warning(f"changelog: could not read {p}: {e}")
         return None
 
-
-# ─── Markdown rendering ──────────────────────────────────────
+# Markdown rendering
 _INLINE_RE = re.compile(r"(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))")
-
 
 def _setup_tags(w):
     w.tag_configure("h1", font=("Helvetica", 22, "bold"),
@@ -102,7 +85,6 @@ def _setup_tags(w):
     w.tag_configure("bold", font=("Helvetica", 11, "bold"),
                     foreground=FG)
 
-
 def _insert_link(w, label, url, base_tag):
     tag = f"lnk_{abs(hash(url + label))}"
     w.tag_configure(tag, foreground=ACCENT, underline=True)
@@ -112,7 +94,6 @@ def _insert_link(w, label, url, base_tag):
                lambda e, ww=w: ww.config(cursor="pointinghand"))
     w.tag_bind(tag, "<Leave>",
                lambda e, ww=w: ww.config(cursor=""))
-
 
 def _insert_inline(w, line, base_tag):
     for part in _INLINE_RE.split(line):
@@ -128,7 +109,6 @@ def _insert_inline(w, line, base_tag):
                 w.insert(tk.END, part, base_tag)
         else:
             w.insert(tk.END, part, base_tag)
-
 
 def _render_markdown(w, md_text):
     _setup_tags(w)
@@ -155,8 +135,7 @@ def _render_markdown(w, md_text):
             _insert_inline(w, line, "body")
             w.insert(tk.END, "\n", "body")
 
-
-# ─── Public entry ────────────────────────────────────────────
+# Public entry
 def show_changelog_window(root):
     win = tk.Toplevel(root)
     win.title(t("changelog_title"))

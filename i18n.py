@@ -2,11 +2,8 @@
 
 _current = {"lang": "en"}
 
-
 TRANSLATIONS = {
-    # ═══════════════════════════════════════════════════════════
-    #  ENGLISH
-    # ═══════════════════════════════════════════════════════════
+    # ENGLISH
     "en": {
         "update_ready": "Done",
         "update_btn_ready": "Done",
@@ -166,9 +163,7 @@ TRANSLATIONS = {
         "update_running_app":  "Update works only for the built .app",
     },
 
-    # ═══════════════════════════════════════════════════════════
-    #  РУССКИЙ
-    # ═══════════════════════════════════════════════════════════
+    # РУССКИЙ
     "ru": {
         "update_ready": "Готово",
         "update_btn_ready": "Готово",
@@ -328,9 +323,7 @@ TRANSLATIONS = {
         "update_running_app":  "Обновление работает только для собранного .app",
     },
 
-    # ═══════════════════════════════════════════════════════════
-    #  ESPAÑOL
-    # ═══════════════════════════════════════════════════════════
+    # ESPAÑOL
     "es": {
         "update_ready": "Listo",
         "update_btn_ready": "Listo",
@@ -471,9 +464,7 @@ TRANSLATIONS = {
         "update_running_app":  "La actualización solo funciona para el .app",
     },
 
-    # ═══════════════════════════════════════════════════════════
-    #  中文
-    # ═══════════════════════════════════════════════════════════
+    # 中文
     "zh": {
         "update_ready": "完成",
         "update_btn_ready": "完成",
@@ -613,9 +604,7 @@ TRANSLATIONS = {
         "update_running_app":  "更新仅对 .app 有效",
     },
 
-    # ═══════════════════════════════════════════════════════════
-    #  हिन्दी
-    # ═══════════════════════════════════════════════════════════
+    # हिन्दी
     "hi": {
         "update_ready": "हो गया",
         "update_btn_ready": "हो गया",
@@ -755,9 +744,7 @@ TRANSLATIONS = {
         "update_running_app":  "अपडेट केवल .app के लिए काम करता है",
     },
 
-    # ═══════════════════════════════════════════════════════════
-    #  العربية
-    # ═══════════════════════════════════════════════════════════
+    # العربية
     "ar": {
         "update_ready": "تم",
         "update_btn_ready": "تم",
@@ -897,9 +884,7 @@ TRANSLATIONS = {
         "update_running_app":  "التحديث يعمل فقط لـ .app",
     },
 
-    # ═══════════════════════════════════════════════════════════
-    #  PORTUGUÊS
-    # ═══════════════════════════════════════════════════════════
+    # PORTUGUÊS
     "pt": {
         "update_ready": "Pronto",
         "update_btn_ready": "Pronto",
@@ -1038,9 +1023,7 @@ TRANSLATIONS = {
         "update_running_app":  "A atualização só funciona para o .app",
     },
 
-    # ═══════════════════════════════════════════════════════════
-    #  DEUTSCH
-    # ═══════════════════════════════════════════════════════════
+    # DEUTSCH
     "de": {
         "update_ready": "Fertig",
         "update_btn_ready": "Fertig",
@@ -1180,9 +1163,7 @@ TRANSLATIONS = {
         "update_running_app":  "Update funktioniert nur für die .app",
     },
 
-    # ═══════════════════════════════════════════════════════════
-    #  日本語
-    # ═══════════════════════════════════════════════════════════
+    # 日本語
     "ja": {
         "update_ready": "完了",
         "update_btn_ready": "完了",
@@ -1322,9 +1303,7 @@ TRANSLATIONS = {
         "update_running_app":  "アップデートは .app でのみ動作します",
     },
 
-    # ═══════════════════════════════════════════════════════════
-    #  FRANÇAIS
-    # ═══════════════════════════════════════════════════════════
+    # FRANÇAIS
     "fr": {
         "update_ready": "Terminé",
         "update_btn_ready": "Terminé",
@@ -1464,9 +1443,7 @@ TRANSLATIONS = {
         "update_running_app":  "La mise à jour marche seulement pour le .app",
     },
 
-    # ═══════════════════════════════════════════════════════════
-    #  POLSKI
-    # ═══════════════════════════════════════════════════════════
+    # POLSKI
     "pl": {
         "update_ready": "Gotowe",
         "update_btn_ready": "Gotowe",
@@ -1606,9 +1583,7 @@ TRANSLATIONS = {
         "update_running_app":  "Aktualizacja działa tylko dla .app",
     },
 
-    # ═══════════════════════════════════════════════════════════
-    #  SRPSKI (Cyrillic)
-    # ═══════════════════════════════════════════════════════════
+    # SRPSKI (Cyrillic)
     "sr": {
         "update_ready": "Готово",
         "update_btn_ready": "Готово",
@@ -1749,18 +1724,14 @@ TRANSLATIONS = {
     },
 }
 
-
 def set_lang(code):
     """Set interface language."""
     _current["lang"] = code if code in TRANSLATIONS else "en"
 
-
 def get_lang():
     return _current["lang"]
 
-
 from typing import Any
-
 
 def t(key: str, **kwargs: Any) -> str:
     """Translate a string with fallback to English."""
@@ -1774,7 +1745,6 @@ def t(key: str, **kwargs: Any) -> str:
         except Exception:
             pass
     return s
-
 
 def has_translation(code):
     return code in TRANSLATIONS

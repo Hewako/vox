@@ -1,28 +1,9 @@
-"""
-Error codes for Vox.
-
-Every failure that reaches the history gets a short code like E020.
-The code is stable and language-independent; the human-readable
-description is looked up separately (and can later be fetched from
-the repo, like version.json).
-
-Codes are grouped by area:
-
-    E0xx  Files and input
-    E01x  External dependencies (whisper-cli, ffmpeg, models)
-    E02x  Transcription process
-    E03x  Resources (memory, disk, cpu)
-    E099  Unknown
-
-The classifier inspects the exception type and message and returns
-the most specific matching code, falling back to E099.
-"""
+"""Error codes for Vox."""
 import logging
 
 logger = logging.getLogger(__name__)
 
-
-# ─── Catalogue ───────────────────────────────────────────────
+# Catalogue
 # Short English fallback descriptions. Full localized text will be
 # fetched from the repo in a later iteration.
 CODES = {
@@ -44,13 +25,11 @@ CODES = {
     "E099": "Unknown error",
 }
 
-
 def describe(code: str) -> str:
     """Return a short English description for a code."""
     return CODES.get(code, CODES["E099"])
 
-
-# ─── Classifier ──────────────────────────────────────────────
+# Classifier
 def classify(exc) -> str:
     """
     Map an exception (or a raw error string) to an error code.
@@ -120,8 +99,7 @@ def classify(exc) -> str:
 
     return "E099"
 
-
-# ─── Localized description ───────────────────────────────────
+# Localized description
 def describe_localized(code: str) -> str:
     """
     Return a localized human-readable description for a code.

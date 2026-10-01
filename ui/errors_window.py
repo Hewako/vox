@@ -1,10 +1,4 @@
-"""
-Error codes reference window.
-
-Shows the full list of error codes with localized descriptions.
-Each code is a clickable link that opens the matching section of
-ERROR_CODES.md on GitHub.
-"""
+"""Error codes reference window."""
 import logging
 import webbrowser
 import tkinter as tk
@@ -25,11 +19,9 @@ WIN_H = 720
 
 REPO_URL = "https://github.com/Hewako/vox"
 
-
 def _code_url(code: str) -> str:
     """GitHub URL to the ERROR_CODES.md section for a code."""
     return f"{REPO_URL}/blob/main/ERROR_CODES.md#{code.lower()}"
-
 
 def show_errors_window(root):
     win = tk.Toplevel(root)
@@ -54,7 +46,7 @@ def show_errors_window(root):
     f_mono = get_font(font_size_key, "mono")
     f_btn = get_font(font_size_key, "btn")
 
-    # ── Header ───────────────────────────────────────────────
+    # Header
     header = tk.Frame(win, bg=BG)
     header.pack(side="top", fill="x", padx=24, pady=(20, 4))
     tk.Label(header, text=t("errors_window_title"),
@@ -67,11 +59,11 @@ def show_errors_window(root):
              justify="left", wraplength=WIN_W - 60,
              anchor="w").pack(side="top", fill="x", padx=24, pady=(6, 12))
 
-    # ── Bottom buttons ───────────────────────────────────────
+    # Bottom buttons
     btn_row = tk.Frame(win, bg=BG)
     btn_row.pack(side="bottom", fill="x", padx=24, pady=(12, 20))
 
-    # ── Body ─────────────────────────────────────────────────
+    # Body
     body = tk.Frame(win, bg=BG_CARD)
     body.pack(side="top", fill="both", expand=True, padx=24, pady=(0, 0))
 
@@ -117,7 +109,7 @@ def show_errors_window(root):
                padx=18, pady=10,
                font=f_btn).pack(side="right")
 
-    # ── Content list ─────────────────────────────────────────
+    # Content list
     pad = tk.Frame(inner, bg=BG_CARD)
     pad.pack(fill="both", expand=True, padx=20, pady=16)
 

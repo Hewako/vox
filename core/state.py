@@ -9,16 +9,13 @@ CANCEL = threading.Event()
 _ACTIVE_PROCS = set()
 _ACTIVE_LOCK = threading.Lock()
 
-
 def register_proc(p):
     with _ACTIVE_LOCK:
         _ACTIVE_PROCS.add(p)
 
-
 def unregister_proc(p):
     with _ACTIVE_LOCK:
         _ACTIVE_PROCS.discard(p)
-
 
 def kill_all_procs():
     with _ACTIVE_LOCK:
@@ -39,11 +36,9 @@ def kill_all_procs():
         except Exception:
             pass
 
-
 def request_cancel():
     CANCEL.set()
     kill_all_procs()
-
 
 def reset_cancel():
     CANCEL.clear()

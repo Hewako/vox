@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 
 DEVNULL = subprocess.DEVNULL
 
-
 def get_duration(path):
     """Длительность медиафайла в секундах (или None)."""
     try:
@@ -33,7 +32,6 @@ def get_duration(path):
         logger.debug(f"get_duration failed: {e}")
         return None
 
-
 def get_media_info(path):
     """
     Возвращает (duration, size_mb) или (None, None).
@@ -46,7 +44,6 @@ def get_media_info(path):
         size_mb = None
     return duration, size_mb
 
-
 def estimate_processing_time(duration):
     """
     Оценка времени обработки в секундах.
@@ -57,7 +54,6 @@ def estimate_processing_time(duration):
         return None
     return duration / REALTIME_FACTOR
 
-
 def file_hash(path):
     """MD5-хэш файла (для кэша)."""
     h = hashlib.md5()
@@ -66,17 +62,14 @@ def file_hash(path):
             h.update(chunk)
     return h.hexdigest()
 
-
 def atomic_write(path, text):
     """Пишет файл атомарно: сначала .tmp, потом os.replace."""
     tmp = Path(str(path) + ".tmp")
     tmp.write_text(text, encoding="utf-8")
     os.replace(tmp, path)
 
-
 def _escape_applescript(s):
     return s.replace("\\", "\\\\").replace('"', '\\"')
-
 
 def notify(title, msg):
     """Системное уведомление macOS."""
@@ -89,7 +82,6 @@ def notify(title, msg):
             check=False, stdout=DEVNULL, stderr=DEVNULL, timeout=3)
     except Exception as e:
         logger.debug(f"notify failed: {e}")
-
 
 def play_sound(sound_type="done"):
     """
@@ -108,18 +100,14 @@ def play_sound(sound_type="done"):
     except Exception as e:
         logger.debug(f"play_sound failed: {e}")
 
-
 def open_in_finder(path):
     subprocess.run(["open", "-R", str(path)], check=False)
-
 
 def open_file(path):
     subprocess.run(["open", str(path)], check=False)
 
-
 def open_folder(path):
     subprocess.run(["open", str(path)], check=False)
-
 
 def check_deps():
     """Проверяет, что модели и утилиты на месте."""
@@ -139,7 +127,6 @@ def check_deps():
             problems.append(f"Не найдена команда: {name}")
     return problems
 
-
 def get_icon_base64():
     """Возвращает base64 PNG-иконки или None."""
     try:
@@ -157,7 +144,6 @@ def get_icon_base64():
             return None
     return None
 
-
 def fmt_time(sec):
     """Секунды → 'м:сс' или 'ч:мм:сс'."""
     sec = int(max(0, sec))
@@ -166,7 +152,6 @@ def fmt_time(sec):
     if h:
         return f"{h}:{m:02d}:{s:02d}"
     return f"{m}:{s:02d}"
-
 
 def fmt_size(mb):
     """Мегабайты → '500 МБ' или '1.5 ГБ'."""

@@ -5,14 +5,12 @@ from core.utils import get_duration
 
 logger = logging.getLogger(__name__)
 
-
 def find_models():
     """Список доступных ggml-моделей (без silero)."""
     if not MODELS_DIR.exists():
         return []
     return sorted(p.name for p in MODELS_DIR.glob("ggml-*.bin")
                   if "silero" not in p.name.lower())
-
 
 def pick_auto_model(duration):
     """
@@ -40,7 +38,6 @@ def pick_auto_model(duration):
             return m
 
     return sorted(available)[0] if available else None
-
 
 def resolve_model(choice, media_path):
     """Превращает 'Авто' в реальное имя модели."""

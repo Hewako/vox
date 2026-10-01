@@ -1,20 +1,11 @@
-"""
-Render the Lottie settings icon into a sequence of PNG frames.
-
-Reads assets/settings_anim.json, renders every frame, replaces the
-RGB content with a single color (keeping alpha as a mask), and saves
-the frames to assets/settings_anim/frame_XX.png.
-
-Run once whenever the Lottie source changes:
-    python3 scripts/render_settings_icon.py
-"""
+"""Render settings icon frames from the Lottie source."""
 import sys
 from pathlib import Path
 
 from PIL import Image
 from rlottie_python import LottieAnimation
 
-# ─── Config ──────────────────────────────────────────────────
+# Config
 PROJECT = Path(__file__).parent.parent
 SRC = PROJECT / "assets" / "settings_anim.json"
 OUT_DIR = PROJECT / "assets" / "settings_anim"
@@ -25,7 +16,6 @@ SIZE = 64
 # Icon color: light gray similar to FG_SUBTLE from config, so the
 # icon reads clearly on the dark background. Change if theme changes.
 TARGET_COLOR = (200, 200, 205, 255)   # RGBA
-
 
 def recolor(img: Image.Image, color: tuple) -> Image.Image:
     """
@@ -38,7 +28,6 @@ def recolor(img: Image.Image, color: tuple) -> Image.Image:
     solid = Image.new("RGBA", img.size, color)
     solid.putalpha(alpha)
     return solid
-
 
 def main():
     if not SRC.exists():
@@ -61,7 +50,6 @@ def main():
         frame.save(out)
 
     print(f"Done: {total} frames -> {OUT_DIR}")
-
 
 if __name__ == "__main__":
     main()

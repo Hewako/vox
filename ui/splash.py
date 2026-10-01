@@ -4,7 +4,6 @@ import tkinter as tk
 from config import BG, FG, FG_SUBTLE
 from core.utils import get_icon_base64
 
-
 class Splash:
     """
     Маленькое окно с иконкой и названием.
@@ -18,7 +17,7 @@ class Splash:
         self.win.configure(bg=BG)
         self.win.attributes("-topmost", True)
 
-        # ── Размеры и позиция ────────────────────────────────
+        # Размеры и позиция
         w, h = 320, 200
         sw = self.win.winfo_screenwidth()
         sh = self.win.winfo_screenheight()
@@ -26,7 +25,7 @@ class Splash:
         y = (sh - h) // 2 - 40
         self.win.geometry(f"{w}x{h}+{x}+{y}")
 
-        # ── Рамка ────────────────────────────────────────────
+        # Рамка
         outer = tk.Frame(self.win, bg=BG, highlightthickness=1,
                          highlightbackground="#3a3a3c")
         outer.pack(fill="both", expand=True)
@@ -34,7 +33,7 @@ class Splash:
         inner = tk.Frame(outer, bg=BG)
         inner.pack(expand=True)
 
-        # ── Иконка ───────────────────────────────────────────
+        # Иконка
         icon_b64 = get_icon_base64()
         if icon_b64:
             try:
@@ -48,7 +47,7 @@ class Splash:
             except Exception:
                 pass
 
-        # ── Название ─────────────────────────────────────────
+        # Название
         tk.Label(inner, text="Vox",
                  bg=BG, fg=FG,
                  font=("Helvetica", 22, "bold")).pack()
@@ -57,7 +56,7 @@ class Splash:
                  bg=BG, fg=FG_SUBTLE,
                  font=("Helvetica", 11)).pack(pady=(6, 0))
 
-        # ── Автозакрытие ─────────────────────────────────────
+        # Автозакрытие
         if duration_ms > 0:
             self.win.after(duration_ms, self.close)
 

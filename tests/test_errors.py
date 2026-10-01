@@ -1,10 +1,7 @@
 """Tests for core.errors."""
 from core import errors
 
-
-# ═══════════════════════════════════════════════════════════════
 #  describe()
-# ═══════════════════════════════════════════════════════════════
 class TestDescribe:
     def test_known_code(self):
         assert errors.describe("E020") == "Whisper failed"
@@ -16,10 +13,7 @@ class TestDescribe:
         for code in errors.CODES:
             assert errors.describe(code)  # non-empty string
 
-
-# ═══════════════════════════════════════════════════════════════
 #  classify() — exception types
-# ═══════════════════════════════════════════════════════════════
 class TestClassifyByType:
     def test_file_not_found(self):
         assert errors.classify(FileNotFoundError("missing")) == "E001"
@@ -41,10 +35,7 @@ class TestClassifyByType:
     def test_timeout_error(self):
         assert errors.classify(TimeoutError("timed out")) == "E022"
 
-
-# ═══════════════════════════════════════════════════════════════
 #  classify() — message keywords
-# ═══════════════════════════════════════════════════════════════
 class TestClassifyByMessage:
     def test_cancelled_english(self):
         assert errors.classify("Cancelled by user") == "E023"
@@ -70,10 +61,7 @@ class TestClassifyByMessage:
     def test_unsupported_format(self):
         assert errors.classify("Unsupported media format") == "E003"
 
-
-# ═══════════════════════════════════════════════════════════════
 #  classify() — fallbacks
-# ═══════════════════════════════════════════════════════════════
 class TestClassifyFallback:
     def test_empty_string_returns_unknown(self):
         assert errors.classify("") == "E099"

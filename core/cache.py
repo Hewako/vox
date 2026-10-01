@@ -4,14 +4,12 @@ from config import CACHE_DIR, MAX_CACHE_MB
 
 logger = logging.getLogger(__name__)
 
-
 def cache_size_mb():
     if not CACHE_DIR.exists():
         return 0.0
     total = sum(p.stat().st_size for p in CACHE_DIR.glob("*.txt")
                 if p.is_file())
     return total / (1024 * 1024)
-
 
 def cleanup_cache(max_mb=MAX_CACHE_MB):
     """Удаляет самые старые файлы кэша, если размер превышает лимит."""
@@ -36,7 +34,6 @@ def cleanup_cache(max_mb=MAX_CACHE_MB):
             logger.debug(f"Не удалось удалить {p}: {e}")
     if removed:
         logger.info(f"Кэш: удалено {removed} файлов, сейчас {total:.1f} МБ")
-
 
 def clear_all_cache():
     """Удаляет все файлы кэша. Возвращает число удалённых."""

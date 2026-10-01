@@ -1,16 +1,4 @@
-"""
-Update checker and installer for Vox.
-
-How it works:
-
-1. On startup, and once a day after that, the app fetches version.json
-   from the repo. It holds the current version and a download URL for
-   the .zip.
-2. If the remote version is newer, the user sees the update dialog.
-3. On confirm, the .zip is downloaded, unpacked into /tmp.
-4. A helper bash script waits for Vox to exit, replaces the .app in
-   /Applications and launches it again.
-"""
+"""Update checker and installer."""
 import os
 import sys
 import ssl
@@ -33,8 +21,7 @@ logger = logging.getLogger(__name__)
 
 LAST_CHECK_FILE = APP_SUPPORT / "last_update_check.txt"
 
-
-# ─── SSL context ─────────────────────────────────────────────
+# SSL context
 def _ssl_context():
     """
     Return an SSL context. Prefer certifi's CA bundle when available,
@@ -48,8 +35,7 @@ def _ssl_context():
         logger.debug(f"certifi not available, using default: {e}")
         return ssl.create_default_context()
 
-
-# ─── Version helpers ─────────────────────────────────────────
+# Version helpers
 def parse_version(v):
     """'1.0.0' -> (1, 0, 0, 0). Bad parts become zeros."""
     if not v:
@@ -65,18 +51,15 @@ def parse_version(v):
         nums.append(0)
     return tuple(nums[:4])
 
-
 def is_newer(remote, current):
     """True if remote > current."""
     return parse_version(remote) > parse_version(current)
 
-
-# ─── Manifest fetch ──────────────────────────────────────────
+# Manifest fetch
 def _cache_bust(url):
     """Append a random query param so GitHub doesn't serve a cached copy."""
     sep = "&" if "?" in url else "?"
     return f"{url}{sep}_={int(time.time() * 1000)}"
-
 
 def fetch_manifest():
     """Fetch version.json. Returns dict or None."""
@@ -92,7 +75,6 @@ def fetch_manifest():
     except Exception as e:
         logger.info(f"update: fetch failed: {e}")
         return None
-
 
 def check_for_update():
     """
@@ -116,8 +98,7 @@ def check_for_update():
     logger.info(f"update: version {remote_v} is available")
     return data
 
-
-# ─── Time-gated auto check ───────────────────────────────────
+# Time-gated auto check
 def should_check():
     """Has enough time passed since the last successful check?"""
     try:
@@ -129,14 +110,12 @@ def should_check():
     except Exception:
         return True
 
-
 def mark_checked():
     """Remember the time of the last successful check."""
     try:
         LAST_CHECK_FILE.write_text(str(time.time()))
     except Exception as e:
         logger.debug(f"update: mark_checked failed: {e}")
-
 
 def check_for_update_if_due():
     """
@@ -173,8 +152,7 @@ def check_for_update_if_due():
     logger.info(f"update: version {remote_v} is available")
     return data
 
-
-# ─── Download ────────────────────────────────────────────────
+# Download
 def download_file(url, dest, on_progress=None):
     """Download url to dest. Calls on_progress(done, total) as it goes."""
     on_progress = on_progress or (lambda d, t: None)
@@ -196,8 +174,7 @@ def download_file(url, dest, on_progress=None):
 
     return dest
 
-
-# ─── Install ─────────────────────────────────────────────────
+# Install
 def _find_app_bundle():
     """
     Path to the current .app bundle, or None if running from source
@@ -209,7 +186,6 @@ def _find_app_bundle():
             app_path = candidate.split(".app/Contents/MacOS/")[0] + ".app"
             return Path(app_path)
     return None
-
 
 def install_update(zip_path, on_status=None):
     """

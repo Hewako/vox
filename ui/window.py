@@ -59,8 +59,7 @@ from ui.widgets import FlatButton
 
 logger = logging.getLogger(__name__)
 
-
-# ─── Window sizes ────────────────────────────────────────────
+# Window sizes
 WIN_BASE_W = 760
 WIN_BASE_H = 720
 WIN_MIN_W = 680
@@ -68,10 +67,7 @@ WIN_MIN_H = 640
 
 AUTO_UPDATE_DELAY_MS = 1500
 
-
-# ═══════════════════════════════════════════════════════════════
-#  Entry point
-# ═══════════════════════════════════════════════════════════════
+# Entry point
 def run_gui(initial_files=None):
     try:
         from tkinterdnd2 import DND_FILES, TkinterDnD
@@ -126,10 +122,7 @@ def run_gui(initial_files=None):
 
     root.mainloop()
 
-
-# ═══════════════════════════════════════════════════════════════
-#  Auto update check on startup
-# ═══════════════════════════════════════════════════════════════
+# Auto update check on startup
 def _auto_check_update(root):
     def worker():
         try:
@@ -152,10 +145,7 @@ def _auto_check_update(root):
 
     threading.Thread(target=worker, daemon=True).start()
 
-
-# ═══════════════════════════════════════════════════════════════
-#  UI rebuild
-# ═══════════════════════════════════════════════════════════════
+# UI rebuild
 def _rebuild_ui(root):
     root.attributes("-alpha", 0.0)
     try:
@@ -166,10 +156,7 @@ def _rebuild_ui(root):
     finally:
         root.attributes("-alpha", 1.0)
 
-
-# ═══════════════════════════════════════════════════════════════
-#  Autosize
-# ═══════════════════════════════════════════════════════════════
+# Autosize
 def _autosize_window(root):
     root.update_idletasks()
     req_w = root.winfo_reqwidth()
@@ -185,10 +172,7 @@ def _autosize_window(root):
 
     root.geometry(f"{target_w}x{target_h}")
 
-
-# ═══════════════════════════════════════════════════════════════
-#  Build UI
-# ═══════════════════════════════════════════════════════════════
+# Build UI
 def _build_ui(root):
     settings = load_settings()
 
@@ -226,7 +210,7 @@ def _build_ui(root):
     detected = st["detected_lang"]
     dnd_ok = DND_FILES is not None
 
-    # ── Header ───────────────────────────────────────────────
+    # Header
     header = tk.Frame(root, bg=BG)
     header.pack(fill="x", padx=24, pady=(20, 4))
 
@@ -282,7 +266,7 @@ def _build_ui(root):
     settings_btn.bind("<Leave>", on_settings_leave)
     settings_btn.bind("<Button-1>", on_settings_click)
 
-    # ── Files card ───────────────────────────────────────────
+    # Files card
     files_card = tk.Frame(root, bg=BG_CARD)
     files_card.pack(fill="both", expand=True, padx=24, pady=(16, 0))
 
@@ -372,7 +356,7 @@ def _build_ui(root):
                  font=(f_small[0], f_small[1], "italic")).pack(
                      anchor="w", pady=(8, 0))
 
-    # ── Progress ─────────────────────────────────────────────
+    # Progress
     prog_wrap = tk.Frame(root, bg=BG)
     prog_wrap.pack(fill="x", padx=24, pady=(20, 0))
 
@@ -410,7 +394,7 @@ def _build_ui(root):
              bg=BG, fg=ACCENT,
              font=(f_ui[0], f_ui[1], "bold")).pack(side="right")
 
-    # ── Bottom buttons ───────────────────────────────────────
+    # Bottom buttons
     run_row = tk.Frame(root, bg=BG)
     run_row.pack(pady=(16, 0))
 
@@ -724,7 +708,7 @@ def _build_ui(root):
     if is_running["value"]:
         set_running(True)
 
-    # ── Footer ───────────────────────────────────────────────
+    # Footer
     def act_about():
         show_about(root)
 
@@ -786,7 +770,7 @@ def _build_ui(root):
                padx=12, pady=6,
                font=f_small).pack(side="right", padx=(0, 8))
 
-    # ── Escape ───────────────────────────────────────────────
+    # Escape
     def hk_cancel(event=None):
         if is_running["value"]:
             cancel()
@@ -794,7 +778,7 @@ def _build_ui(root):
 
     root.bind_all("<Escape>", hk_cancel)
 
-    # ── Close ────────────────────────────────────────────────
+    # Close
     def on_close():
         if is_running["value"]:
             if not messagebox.askyesno("Vox", "Transcription running. Quit?"):
@@ -807,7 +791,6 @@ def _build_ui(root):
     root.protocol("WM_DELETE_WINDOW", on_close)
 
     root.after(100, lambda: _autosize_window(root))
-
 
 def _setup_styles():
     style = ttk.Style()

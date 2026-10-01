@@ -29,7 +29,6 @@ LANG_RE = re.compile(
     re.IGNORECASE,
 )
 
-
 def transcribe_one(media, model_name, language, use_vad,
                    save_srt=False, on_progress=None, on_status=None,
                    on_language=None, use_cache=True):

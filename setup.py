@@ -1,14 +1,4 @@
-"""
-Vox build script for py2app.
-
-After the build it:
-  · copies Vox.app to /Applications
-  · strips xattr (so macOS lets the app run)
-  · removes build/ and dist/ (no duplicate icons in Launchpad)
-
-So after `python3 setup.py py2app` you end up with exactly one Vox
-in Applications.
-"""
+"""py2app build script."""
 import shutil
 import subprocess
 import sys
@@ -55,10 +45,7 @@ setup(
     setup_requires=['py2app'],
 )
 
-
-# ═══════════════════════════════════════════════════════════════
-#  Post-build: copy to /Applications and clean dist
-# ═══════════════════════════════════════════════════════════════
+# Post-build: copy to /Applications and clean dist
 def _post_build():
     here = Path(__file__).parent.resolve()
     built_app = here / 'dist' / 'Vox.app'
@@ -82,7 +69,6 @@ def _post_build():
 
     print('\n✓ Done. Vox is in /Applications/Vox.app')
     print('  Launch: open /Applications/Vox.app')
-
 
 if 'py2app' in sys.argv:
     _post_build()

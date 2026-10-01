@@ -5,7 +5,6 @@ from config import (
     ACCENT, ACCENT_HOVER,
 )
 
-
 class FlatButton:
     def __init__(self, parent, text, command, bg=ACCENT, fg="white",
                  hover=ACCENT_HOVER, disabled_bg=BG_INPUT,
@@ -79,7 +78,6 @@ class FlatButton:
                                 cursor="pointinghand")
         if "text" in kw:
             self.lbl.config(text=kw["text"])
-
 
 class FlatCheckbox:
     def __init__(self, parent, text, variable, bg=BG_CARD, fg=FG,

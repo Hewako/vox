@@ -1,16 +1,4 @@
-"""
-Settings window for Vox.
-
-All user-facing options live here: interface language, transcription
-language, model, font size, concurrency, VAD, cache, SRT, sound.
-
-The window uses a buffer: edits are held in local tk variables and
-only written to settings.json when the user clicks Apply. Closing
-with Cancel, Esc, or the window close button discards the changes.
-
-On Apply the caller is responsible for rebuilding the main window,
-so the new language/font size take effect.
-"""
+"""Settings window."""
 import logging
 import tkinter as tk
 from tkinter import ttk
@@ -42,15 +30,12 @@ from ui.widgets import FlatButton, FlatCheckbox
 
 logger = logging.getLogger(__name__)
 
-
-# ─── Window geometry ─────────────────────────────────────────
+# Window geometry
 WIN_W = 640
 WIN_H = 560
 
-
 def _font_label(key):
     return t(f"font_{key}")
-
 
 def show_settings_window(root, on_apply=None):
     """
@@ -62,7 +47,7 @@ def show_settings_window(root, on_apply=None):
     """
     settings = load_settings()
 
-    # ─── Build the Toplevel ──────────────────────────────────
+    # Build the Toplevel
     win = tk.Toplevel(root)
     win.title(t("settings_title"))
     win.resizable(False, False)
@@ -76,7 +61,7 @@ def show_settings_window(root, on_apply=None):
     y = root.winfo_rooty() + (root.winfo_height() - WIN_H) // 3
     win.geometry(f"{WIN_W}x{WIN_H}+{max(x, 40)}+{max(y, 40)}")
 
-    # ─── Fonts ───────────────────────────────────────────────
+    # Fonts
     font_size_key = settings.get("font_size", "medium")
     if font_size_key not in FONT_SIZE_ORDER:
         font_size_key = "medium"
@@ -95,7 +80,7 @@ def show_settings_window(root, on_apply=None):
     win.option_add("*TCombobox*Listbox.selectBackground", ACCENT)
     win.option_add("*TCombobox*Listbox.selectForeground", "white")
 
-    # ─── Header ──────────────────────────────────────────────
+    # Header
     header = tk.Frame(win, bg=BG)
     header.pack(fill="x", padx=24, pady=(20, 4))
 
@@ -103,7 +88,7 @@ def show_settings_window(root, on_apply=None):
              bg=BG, fg=FG,
              font=(family, f_ui[1] + 6, "bold")).pack(anchor="w")
 
-    # ─── Buffer variables (initialized from current settings) ─
+    # Buffer variables (initialized from current settings)
     ui_lang_code = settings.get("ui_lang", "en")
     if ui_lang_code not in UI_LANGUAGES:
         ui_lang_code = "en"
@@ -127,7 +112,7 @@ def show_settings_window(root, on_apply=None):
     # Track previous non-separator language value
     prev_lang = {"value": default_lang}
 
-    # ─── Body (scrollable if needed) ─────────────────────────
+    # Body (scrollable if needed)
     body = tk.Frame(win, bg=BG_CARD)
     body.pack(fill="both", expand=True, padx=24, pady=(12, 0))
 
@@ -206,7 +191,7 @@ def show_settings_window(root, on_apply=None):
     cell_checkbox(8, 0, t("chk_srt"), srt_var)
     cell_checkbox(8, 1, t("chk_sound"), sound_var)
 
-    # ─── Buttons ─────────────────────────────────────────────
+    # Buttons
     btn_row = tk.Frame(win, bg=BG)
     btn_row.pack(fill="x", padx=24, pady=(16, 20))
 
@@ -269,7 +254,7 @@ def show_settings_window(root, on_apply=None):
                padx=20, pady=10,
                font=(f_btn[0], f_btn[1], "bold")).pack(side="right")
 
-    # ─── Keyboard ────────────────────────────────────────────
+    # Keyboard
     win.bind("<Escape>", do_cancel)
     win.bind("<Return>", do_apply)
     win.protocol("WM_DELETE_WINDOW", do_cancel)

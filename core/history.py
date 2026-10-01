@@ -1,21 +1,4 @@
-"""
-History of transcriptions.
-
-Stores every finished job (successful or failed) in a small JSON file
-next to settings.json. Entries are kept newest-first, capped at
-MAX_ENTRIES. Older records are dropped silently.
-
-Public API:
-    load()                   -- read all entries
-    add(...)                 -- append one entry
-    list_entries()           -- read entries, newest first
-    delete(entry_id)         -- remove one entry by id
-    clear()                  -- drop all entries
-    count()                  -- number of entries
-
-All file operations are safe against missing or corrupt JSON: they
-fall back to an empty history rather than raising.
-"""
+"""History of transcription jobs."""
 import json
 import time
 import uuid
@@ -27,13 +10,11 @@ from core import errors
 
 logger = logging.getLogger(__name__)
 
-
-# ─── Config ──────────────────────────────────────────────────
+# Config
 MAX_ENTRIES = 200
 SCHEMA_VERSION = 1
 
-
-# ─── Internal load/save ──────────────────────────────────────
+# Internal load/save
 def _read_raw() -> dict:
     """Read the history file. Returns {'version': ..., 'entries': [...]}."""
     if not HISTORY_FILE.exists():
@@ -54,7 +35,6 @@ def _read_raw() -> dict:
         logger.warning(f"history: could not read file, starting fresh: {e}")
         return {"version": SCHEMA_VERSION, "entries": []}
 
-
 def _write_raw(data: dict) -> None:
     """Write the history file atomically via a temp file + rename."""
     HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -72,12 +52,10 @@ def _write_raw(data: dict) -> None:
         except Exception:
             pass
 
-
-# ─── Public API ──────────────────────────────────────────────
+# Public API
 def load() -> dict:
     """Return the raw structure (used by tests)."""
     return _read_raw()
-
 
 def list_entries() -> list:
     """
@@ -98,11 +76,9 @@ def list_entries() -> list:
 
     return sorted(entries, key=_key, reverse=True)
 
-
 def count() -> int:
     """Number of entries currently stored."""
     return len(_read_raw().get("entries", []))
-
 
 def add(
     source: str | None,
@@ -159,7 +135,6 @@ def add(
 
     return entry
 
-
 def delete(entry_id: str) -> bool:
     """
     Remove one entry by id. Returns True if something was removed.
@@ -172,7 +147,6 @@ def delete(entry_id: str) -> bool:
     data["entries"] = new_entries
     _write_raw(data)
     return True
-
 
 def clear() -> int:
     """

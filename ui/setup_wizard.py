@@ -30,7 +30,6 @@ VAD_MODEL_URL = (
 )
 VAD_MODEL_SIZE_MB = 1
 
-
 def _ssl_context():
     """
     Same as in core.updater: prefer certifi's CA bundle so HTTPS works
@@ -43,7 +42,6 @@ def _ssl_context():
         logger.debug(f"certifi not available, using default: {e}")
         return ssl.create_default_context()
 
-
 def has_any_model():
     if not MODELS_DIR.exists():
         return False
@@ -51,7 +49,6 @@ def has_any_model():
         if "silero" not in p.name.lower():
             return True
     return False
-
 
 def _fmt_eta(seconds):
     """Seconds -> '0:15' / '1:23' / '1:02:05'. Or '—' if unknown."""
@@ -64,7 +61,6 @@ def _fmt_eta(seconds):
     h, m = divmod(m, 60)
     return f"{h}:{m:02d}:{s:02d}"
 
-
 def _fmt_mb(mb):
     if mb is None:
         return "?"
@@ -73,7 +69,6 @@ def _fmt_mb(mb):
     if mb < 1024:
         return f"{mb:.1f} MB"
     return f"{mb / 1024:.2f} GB"
-
 
 def show_wizard(root):
     if has_any_model():
@@ -124,7 +119,7 @@ def show_wizard(root):
              bg=BG_CARD, fg=FG_SUBTLE,
              font=("Helvetica", 10)).pack(anchor="w", pady=(8, 0))
 
-    # ── Progress ─────────────────────────────────────────────
+    # Progress
     prog_wrap = tk.Frame(win, bg=BG)
     prog_wrap.pack(fill="x", padx=24, pady=(0, 8))
 
@@ -301,7 +296,6 @@ def show_wizard(root):
     root.wait_window(win)
 
     return result["ok"]
-
 
 def _update_progress(prog_var, status_var, stats_var,
                      pct, mb_done, mb_total, speed_str, eta_str, label):

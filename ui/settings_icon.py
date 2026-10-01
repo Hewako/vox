@@ -1,14 +1,4 @@
-"""
-Animated settings icon player.
-
-Loads the PNG frame sequence produced by
-`scripts/render_settings_icon.py` and plays it on demand on a Label.
-
-The frames folder is searched in several locations so the icon works
-both when the app runs from source and inside a bundled .app:
-  - <project>/assets/settings_anim                      (source tree)
-  - <Vox.app>/Contents/Resources/assets/settings_anim   (bundled)
-"""
+"""Animated settings icon player."""
 import logging
 import sys
 from pathlib import Path
@@ -17,11 +7,9 @@ from PIL import Image, ImageTk
 
 logger = logging.getLogger(__name__)
 
-
-# ─── Config ──────────────────────────────────────────────────
+# Config
 FRAME_DELAY_MS = 33     # ~30 fps, matches the source Lottie timeline
 DISPLAY_SIZE = 26       # icon size in the header, in pixels
-
 
 def _find_frames_dir():
     """
@@ -44,16 +32,8 @@ def _find_frames_dir():
             return p
     return None
 
-
 class SettingsIconPlayer:
-    """
-    Plays the settings icon animation on a tkinter Label.
-
-    Usage:
-        player = SettingsIconPlayer(root, label_widget)
-        player.show_idle()
-        player.play_once()
-    """
+    """Plays the settings icon animation on a tk.Label."""
 
     def __init__(self, root, label_widget, delay_ms=FRAME_DELAY_MS):
         self.root = root
@@ -65,7 +45,7 @@ class SettingsIconPlayer:
         self._on_done = None
         self._load_frames()
 
-    # ─── Loading ─────────────────────────────────────────────
+    # Loading
     def _load_frames(self):
         folder = _find_frames_dir()
         if folder is None:
@@ -91,7 +71,7 @@ class SettingsIconPlayer:
     def is_ready(self):
         return len(self.frames) > 0
 
-    # ─── Playback ────────────────────────────────────────────
+    # Playback
     def show_idle(self):
         if not self.frames:
             return
@@ -105,7 +85,7 @@ class SettingsIconPlayer:
         self.idx = 0
         self._tick_once()
 
-    # ─── Internals ───────────────────────────────────────────
+    # Internals
     def _display(self, index):
         img = self.frames[index]
         self.label.config(image=img)

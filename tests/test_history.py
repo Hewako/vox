@@ -3,18 +3,14 @@ import time
 
 import core.history as history
 
-
-# ─── Fixture helper ──────────────────────────────────────────
+# Fixture helper
 def _isolate(monkeypatch, tmp_path):
     """Redirect the history file into a tmp directory."""
     fake = tmp_path / "history.json"
     monkeypatch.setattr(history, "HISTORY_FILE", fake)
     return fake
 
-
-# ═══════════════════════════════════════════════════════════════
 #  Empty / missing file
-# ═══════════════════════════════════════════════════════════════
 class TestEmptyState:
     def test_missing_file_returns_empty(self, monkeypatch, tmp_path):
         _isolate(monkeypatch, tmp_path)
@@ -37,10 +33,7 @@ class TestEmptyState:
         fake.write_text('{"version": 1, "entries": "oops"}')
         assert history.list_entries() == []
 
-
-# ═══════════════════════════════════════════════════════════════
 #  add()
-# ═══════════════════════════════════════════════════════════════
 class TestAdd:
     def test_creates_file(self, monkeypatch, tmp_path):
         fake = _isolate(monkeypatch, tmp_path)
@@ -91,10 +84,7 @@ class TestAdd:
         assert e["source"] == ""
         assert e["output"] == ""
 
-
-# ═══════════════════════════════════════════════════════════════
 #  Cap at MAX_ENTRIES
-# ═══════════════════════════════════════════════════════════════
 class TestCap:
     def test_cap_keeps_newest(self, monkeypatch, tmp_path):
         _isolate(monkeypatch, tmp_path)
@@ -109,10 +99,7 @@ class TestCap:
         assert entries[1]["source"] == "/f3.mp4"
         assert entries[2]["source"] == "/f2.mp4"
 
-
-# ═══════════════════════════════════════════════════════════════
 #  delete()
-# ═══════════════════════════════════════════════════════════════
 class TestDelete:
     def test_delete_existing(self, monkeypatch, tmp_path):
         _isolate(monkeypatch, tmp_path)
@@ -127,10 +114,7 @@ class TestDelete:
         _isolate(monkeypatch, tmp_path)
         assert history.delete("nonexistent-id") is False
 
-
-# ═══════════════════════════════════════════════════════════════
 #  clear()
-# ═══════════════════════════════════════════════════════════════
 class TestClear:
     def test_clear_removes_all(self, monkeypatch, tmp_path):
         _isolate(monkeypatch, tmp_path)
@@ -145,10 +129,7 @@ class TestClear:
         _isolate(monkeypatch, tmp_path)
         assert history.clear() == 0
 
-
-# ═══════════════════════════════════════════════════════════════
 #  Robustness
-# ═══════════════════════════════════════════════════════════════
 class TestRobustness:
     def test_entry_without_finished_at_sorted_last(self, monkeypatch, tmp_path):
         """An entry with a broken finished_at must not crash sorting."""
@@ -172,9 +153,7 @@ class TestRobustness:
         entries = history.list_entries()
         assert isinstance(entries, list)
 
-# ═══════════════════════════════════════════════════════════════
 #  Error classification on add()
-# ═══════════════════════════════════════════════════════════════
 class TestErrorClassification:
     def test_raw_message_is_classified(self, monkeypatch, tmp_path):
         _isolate(monkeypatch, tmp_path)

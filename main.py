@@ -21,7 +21,7 @@ from core.models import pick_auto_model
 from core.transcriber import transcribe_one
 from core.utils import get_duration
 
-# ─── Логирование ─────────────────────────────────────────────
+# Логирование
 # Configure the ROOT logger so every module in the project
 # (core.*, ui.*) ends up in the same file and on the same stream.
 # The file handler rotates at LOG_MAX_BYTES, keeping LOG_BACKUP_COUNT
@@ -53,7 +53,6 @@ logger = logging.getLogger("vox")
 logger.info(f"Vox {__version__} запущен")
 logger.info(f"Аргументы запуска: {sys.argv}")
 
-
 def _collect_launch_files():
     """
     Возвращает список путей к файлам, переданных при запуске.
@@ -72,7 +71,6 @@ def _collect_launch_files():
             files.append(str(p))
     return files
 
-
 def run_cli(media_path, lang="ru"):
     media = Path(media_path)
     model = pick_auto_model(get_duration(media))
@@ -85,7 +83,6 @@ def run_cli(media_path, lang="ru"):
         on_progress=lambda p: None,
     )
     print(f"Готово: {out}")
-
 
 if __name__ == "__main__":
     launch_files = _collect_launch_files()

@@ -3,11 +3,9 @@ import os
 import time
 import core.cache as cache_mod
 
-
 def test_cache_size_mb_empty(tmp_path, monkeypatch):
     monkeypatch.setattr(cache_mod, "CACHE_DIR", tmp_path)
     assert cache_mod.cache_size_mb() == 0.0
-
 
 def test_cache_size_mb(tmp_path, monkeypatch):
     (tmp_path / "a.txt").write_text("x" * 1024)
@@ -16,13 +14,11 @@ def test_cache_size_mb(tmp_path, monkeypatch):
     size = cache_mod.cache_size_mb()
     assert 0.002 < size < 0.01  # ~3 KB
 
-
 def test_cleanup_cache_no_action_if_small(tmp_path, monkeypatch):
     (tmp_path / "a.txt").write_text("x" * 100)
     monkeypatch.setattr(cache_mod, "CACHE_DIR", tmp_path)
     cache_mod.cleanup_cache(max_mb=10)
     assert (tmp_path / "a.txt").exists()
-
 
 def test_cleanup_cache_removes_oldest(tmp_path, monkeypatch):
     # три файла по 200 КБ = ~0.59 МБ
@@ -46,7 +42,6 @@ def test_cleanup_cache_removes_oldest(tmp_path, monkeypatch):
     assert not f1.exists()
     assert not f2.exists()
     assert f3.exists()
-
 
 def test_cleanup_cache_skips_nonexistent_dir(tmp_path, monkeypatch):
     fake = tmp_path / "no_such_dir"

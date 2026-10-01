@@ -11,7 +11,6 @@ from config import (
 
 logger = logging.getLogger(__name__)
 
-
 def _detect_system_lang():
     """Detect the system language. Returns English if unknown."""
     code = None
@@ -43,7 +42,6 @@ def _detect_system_lang():
     logger.info("System language not detected, using English")
     return "English"
 
-
 def load_settings():
     if SETTINGS_FILE.exists():
         try:
@@ -69,7 +67,6 @@ def load_settings():
     defaults["lang"] = sys_lang
     defaults["ui_lang"] = sys_lang
     return defaults
-
 
 def save_settings(data):
     try:

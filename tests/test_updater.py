@@ -1,17 +1,10 @@
-"""Tests for core.updater.
-
-These tests never touch the real network or the real update-check
-marker. Network calls are replaced via monkeypatch on `updater.urlopen`
-or on `updater.fetch_manifest`, and the marker file is redirected to
-a temporary directory per test.
-"""
+"""Tests for core.updater."""
 
 import time
 
 from core import updater
 
-
-# ─── Helper ──────────────────────────────────────────────────
+# Helper
 class _FakeResponse:
     """Minimal stand-in for the object returned by urlopen()."""
 
@@ -27,10 +20,7 @@ class _FakeResponse:
     def __exit__(self, *args):
         return False
 
-
-# ═══════════════════════════════════════════════════════════════
 #  parse_version
-# ═══════════════════════════════════════════════════════════════
 class TestParseVersion:
     def test_three_parts(self):
         assert updater.parse_version("1.0.0") == (1, 0, 0, 0)
@@ -59,10 +49,7 @@ class TestParseVersion:
     def test_whitespace_stripped(self):
         assert updater.parse_version("  1.0.0  ") == (1, 0, 0, 0)
 
-
-# ═══════════════════════════════════════════════════════════════
 #  is_newer
-# ═══════════════════════════════════════════════════════════════
 class TestIsNewer:
     def test_patch_bump(self):
         assert updater.is_newer("1.0.1", "1.0.0") is True
@@ -81,10 +68,7 @@ class TestIsNewer:
         # comparison correctly says "1.10.0" is newer.
         assert updater.is_newer("1.10.0", "1.9.0") is True
 
-
-# ═══════════════════════════════════════════════════════════════
 #  should_check
-# ═══════════════════════════════════════════════════════════════
 class TestShouldCheck:
     def test_no_file_returns_true(self, monkeypatch, tmp_path):
         monkeypatch.setattr(updater, "LAST_CHECK_FILE", tmp_path / "missing.txt")
@@ -109,10 +93,7 @@ class TestShouldCheck:
         monkeypatch.setattr(updater, "LAST_CHECK_FILE", marker)
         assert updater.should_check() is True
 
-
-# ═══════════════════════════════════════════════════════════════
 #  mark_checked
-# ═══════════════════════════════════════════════════════════════
 class TestMarkChecked:
     def test_creates_file(self, monkeypatch, tmp_path):
         marker = tmp_path / "marker.txt"
@@ -129,10 +110,7 @@ class TestMarkChecked:
         ts = float(marker.read_text().strip())
         assert before <= ts <= after
 
-
-# ═══════════════════════════════════════════════════════════════
 #  fetch_manifest
-# ═══════════════════════════════════════════════════════════════
 class TestFetchManifest:
     def test_success(self, monkeypatch):
         payload = b'{"version": "1.0.1", "notes": "test"}'
@@ -152,10 +130,7 @@ class TestFetchManifest:
         monkeypatch.setattr(updater, "urlopen", boom)
         assert updater.fetch_manifest() is None
 
-
-# ═══════════════════════════════════════════════════════════════
 #  check_for_update (manual button)
-# ═══════════════════════════════════════════════════════════════
 class TestCheckForUpdate:
     def test_newer_returns_manifest(self, monkeypatch):
         monkeypatch.setattr(updater, "fetch_manifest", lambda: {"version": "99.0.0"})
@@ -179,10 +154,7 @@ class TestCheckForUpdate:
         monkeypatch.setattr(updater, "fetch_manifest", lambda: None)
         assert updater.check_for_update() is None
 
-
-# ═══════════════════════════════════════════════════════════════
 #  check_for_update_if_due (startup auto check)
-# ═══════════════════════════════════════════════════════════════
 class TestCheckForUpdateIfDue:
     def test_skips_when_not_due(self, monkeypatch, tmp_path):
         marker = tmp_path / "marker.txt"

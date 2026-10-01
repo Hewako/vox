@@ -1,10 +1,4 @@
-"""
-History window.
-
-Shows a list of past transcriptions grouped by date. Built on a
-plain tk.Canvas instead of ttk.Treeview, because Tk 8.6 on macOS
-does not reliably render images in Treeview column #0.
-"""
+"""History of past transcriptions."""
 import logging
 import tkinter as tk
 from datetime import date, datetime, timedelta
@@ -35,23 +29,20 @@ from ui.widgets import FlatButton
 
 logger = logging.getLogger(__name__)
 
-
-# ─── Geometry ────────────────────────────────────────────────
+# Geometry
 WIN_W = 820
 WIN_H = 640
 
 ICON_SIZE = 20
 _ASSETS = Path(__file__).parent.parent / "assets"
 
-
-# ─── Helpers ─────────────────────────────────────────────────
+# Helpers
 def _human_time(ts):
     """Format a finished_at timestamp as HH:MM."""
     try:
         return datetime.fromtimestamp(float(ts)).strftime("%H:%M")
     except Exception:
         return "—"
-
 
 def _human_duration(seconds):
     """Format a duration in seconds as 1:23 or 1:02:05 or '—'."""
@@ -68,7 +59,6 @@ def _human_duration(seconds):
         return f"{m}:{s:02d}"
     h, m = divmod(m, 60)
     return f"{h}:{m:02d}:{s:02d}"
-
 
 def _group_label(ts):
     """Return a short human label for the group of an entry."""
@@ -99,7 +89,6 @@ def _tint(img: Image.Image, rgb: tuple) -> Image.Image:
     solid.putalpha(alpha)
     return solid
 
-
 def _hex_to_rgb(hex_color: str) -> tuple:
     """'#30d158' -> (48, 209, 88)."""
     h = hex_color.lstrip("#")
@@ -112,8 +101,7 @@ def _group_key(ts):
     except Exception:
         return "0000-00-00"
 
-
-# ─── Main entry ──────────────────────────────────────────────
+# Main entry
 def show_history_window(root, on_retry=None):
     """
     Open the history window.
@@ -154,14 +142,14 @@ def show_history_window(root, on_retry=None):
             pass
         win.destroy()
 
-    # ── Header ───────────────────────────────────────────────
+    # Header
     header = tk.Frame(win, bg=BG)
     header.pack(fill="x", padx=24, pady=(20, 4))
     tk.Label(header, text=t("history_title"),
              bg=BG, fg=FG,
              font=(f_ui[0], f_ui[1] + 8, "bold")).pack(anchor="w")
 
-    # ── Empty state ──────────────────────────────────────────
+    # Empty state
     if not entries:
         empty = tk.Frame(win, bg=BG_CARD)
         empty.pack(fill="both", expand=True, padx=24, pady=(12, 0))
@@ -181,7 +169,7 @@ def show_history_window(root, on_retry=None):
         win.focus_force()
         return win
 
-    # ── Icons ────────────────────────────────────────────────
+    # Icons
     icon_ok = None
     icon_err = None
     try:
@@ -207,7 +195,7 @@ def show_history_window(root, on_retry=None):
     win._icon_ok = icon_ok
     win._icon_err = icon_err
 
-    # ── Scrollable area ──────────────────────────────────────
+    # Scrollable area
     main = tk.Frame(win, bg=BG_CARD)
     main.pack(fill="both", expand=True, padx=24, pady=(12, 0))
 
@@ -242,7 +230,7 @@ def show_history_window(root, on_retry=None):
 
     win.bind("<MouseWheel>", on_mousewheel)
 
-    # ── State ────────────────────────────────────────────────
+    # State
     entry_by_id = {e.get("id"): e for e in entries if e.get("id")}
     # iid -> [(widget, default_bg, default_fg_or_None), ...]
     row_widgets = {}
@@ -280,7 +268,7 @@ def show_history_window(root, on_retry=None):
                 if isinstance(w, tk.Label) and fg is not None:
                     _set_fg(w, "white")
 
-    # ── Actions ──────────────────────────────────────────────
+    # Actions
     def open_result(entry):
         path = entry.get("output", "")
         if not path or not Path(path).exists():
@@ -345,7 +333,7 @@ def show_history_window(root, on_retry=None):
         finally:
             menu.grab_release()
 
-    # ── Row builders ─────────────────────────────────────────
+    # Row builders
     def add_group_header(label_text):
         hdr = tk.Frame(inner, bg=BG_CARD)
         hdr.pack(fill="x", pady=(14, 4))
@@ -436,7 +424,7 @@ def show_history_window(root, on_retry=None):
             w.bind("<Button-2>", on_right)
             w.bind("<Button-3>", on_right)
 
-    # ── Populate ─────────────────────────────────────────────
+    # Populate
     groups = {}
     for e in entries:
         key = _group_key(e.get("finished_at"))
@@ -452,7 +440,7 @@ def show_history_window(root, on_retry=None):
     inner.update_idletasks()
     update_scrollregion()
 
-    # ── Bottom buttons ───────────────────────────────────────
+    # Bottom buttons
     def clear_all():
         if not messagebox.askyesno(t("history_clear_btn"),
                                     t("history_clear_confirm")):
@@ -474,7 +462,7 @@ def show_history_window(root, on_retry=None):
                bg=BG_INPUT, hover=DANGER_HOVER, fg=DANGER,
                padx=18, pady=10, font=f_btn).pack(side="right", padx=(0, 8))
 
-    # ── Keyboard ─────────────────────────────────────────────
+    # Keyboard
     win.bind("<Escape>", close)
     win.protocol("WM_DELETE_WINDOW", close)
 

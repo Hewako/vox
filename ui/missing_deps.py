@@ -8,9 +8,7 @@ from config import (
 from i18n import t
 from ui.widgets import FlatButton
 
-
 INSTALL_CMD = "brew install whisper-cpp ffmpeg"
-
 
 def show_missing_deps(root, missing):
     result = {"ok": False}
