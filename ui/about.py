@@ -13,6 +13,7 @@ from config import (
 from i18n import t
 from ui.widgets import FlatButton
 from ui.changelog_window import show_changelog_window
+from ui.errors_window import show_errors_window
 from core.cache import cache_size_mb
 from core.utils import open_file, open_in_finder
 from core.updater import check_for_update
@@ -189,6 +190,12 @@ def show_about(root):
 
     FlatButton(btn_row, t("about_btn_models"),
                lambda: open_in_finder(MODELS_DIR),
+               bg=BG_INPUT, hover=BORDER, fg=FG,
+               padx=14, pady=8,
+               font=("Helvetica", 11)).pack(side="left", padx=(8, 0))
+
+    FlatButton(btn_row, t("about_btn_errors"),
+               lambda: show_errors_window(win),
                bg=BG_INPUT, hover=BORDER, fg=FG,
                padx=14, pady=8,
                font=("Helvetica", 11)).pack(side="left", padx=(8, 0))

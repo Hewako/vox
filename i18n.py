@@ -8,6 +8,9 @@ TRANSLATIONS = {
     #  ENGLISH
     # ═══════════════════════════════════════════════════════════
     "en": {
+        "update_ready": "Ready to install",
+        "update_btn_ready": "Done",
+        "update_no_url": "No download URL in version.json",
         "error_prefix": "Error",
         "error_E001": "Source file not found",
         "error_E002": "Could not read media information",
@@ -164,6 +167,9 @@ TRANSLATIONS = {
     #  РУССКИЙ
     # ═══════════════════════════════════════════════════════════
     "ru": {
+        "update_ready": "Готово к установке",
+        "update_btn_ready": "Готово",
+        "update_no_url": "Ссылка на скачивание отсутствует в version.json",
         "error_prefix": "Ошибка",
         "error_E001": "Исходный файл не найден",
         "error_E002": "Не удалось прочитать информацию о файле",
@@ -320,6 +326,9 @@ TRANSLATIONS = {
     #  ESPAÑOL
     # ═══════════════════════════════════════════════════════════
     "es": {
+        "update_ready": "Listo para instalar",
+        "update_btn_ready": "Listo",
+        "update_no_url": "Falta la URL de descarga en version.json",
         "error_prefix": "Error",
         "changelog_title": "Novedades",
         "changelog_missing": "Archivo de cambios no encontrado",
@@ -456,6 +465,9 @@ TRANSLATIONS = {
     #  中文
     # ═══════════════════════════════════════════════════════════
     "zh": {
+        "update_ready": "准备安装",
+        "update_btn_ready": "完成",
+        "update_no_url": "version.json 中缺少下载链接",
         "error_prefix": "错误",
         "changelog_title": "更新日志",
         "changelog_missing": "未找到更新日志文件",
@@ -592,6 +604,9 @@ TRANSLATIONS = {
     #  हिन्दी
     # ═══════════════════════════════════════════════════════════
     "hi": {
+        "update_ready": "स्थापना के लिए तैयार",
+        "update_btn_ready": "हो गया",
+        "update_no_url": "version.json में डाउनलोड लिंक नहीं है",
         "error_prefix": "त्रुटि",
         "changelog_title": "नया क्या है",
         "changelog_missing": "चेंजलॉग फ़ाइल नहीं मिली",
@@ -728,6 +743,9 @@ TRANSLATIONS = {
     #  العربية
     # ═══════════════════════════════════════════════════════════
     "ar": {
+        "update_ready": "جاهز للتثبيت",
+        "update_btn_ready": "تم",
+        "update_no_url": "لا يوجد رابط تنزيل في version.json",
         "error_prefix": "خطأ",
         "changelog_title": "الجديد",
         "changelog_missing": "لم يتم العثور على ملف التغييرات",
@@ -864,6 +882,9 @@ TRANSLATIONS = {
     #  PORTUGUÊS
     # ═══════════════════════════════════════════════════════════
     "pt": {
+        "update_ready": "Pronto para instalar",
+        "update_btn_ready": "Pronto",
+        "update_no_url": "Falta URL de download em version.json",
         "error_prefix": "Erro",
         "changelog_title": "Novidades",
         "changelog_missing": "Arquivo de alterações não encontrado",
@@ -1000,6 +1021,9 @@ TRANSLATIONS = {
     #  DEUTSCH
     # ═══════════════════════════════════════════════════════════
     "de": {
+        "update_ready": "Bereit zur Installation",
+        "update_btn_ready": "Fertig",
+        "update_no_url": "Keine Download-URL in version.json",
         "error_prefix": "Fehler",
         "changelog_title": "Neuigkeiten",
         "changelog_missing": "Changelog-Datei nicht gefunden",
@@ -1136,6 +1160,9 @@ TRANSLATIONS = {
     #  日本語
     # ═══════════════════════════════════════════════════════════
     "ja": {
+        "update_ready": "インストール準備完了",
+        "update_btn_ready": "完了",
+        "update_no_url": "version.json にダウンロード URL がありません",
         "error_prefix": "エラー",
         "changelog_title": "新機能",
         "changelog_missing": "変更履歴ファイルが見つかりません",
@@ -1272,6 +1299,9 @@ TRANSLATIONS = {
     #  FRANÇAIS
     # ═══════════════════════════════════════════════════════════
     "fr": {
+        "update_ready": "Prêt à installer",
+        "update_btn_ready": "Terminé",
+        "update_no_url": "Pas d'URL de téléchargement dans version.json",
         "error_prefix": "Erreur",
         "changelog_title": "Nouveautés",
         "changelog_missing": "Fichier des nouveautés introuvable",
@@ -1408,6 +1438,9 @@ TRANSLATIONS = {
     #  POLSKI
     # ═══════════════════════════════════════════════════════════
     "pl": {
+        "update_ready": "Gotowe do instalacji",
+        "update_btn_ready": "Gotowe",
+        "update_no_url": "Brak adresu pobierania w version.json",
         "error_prefix": "Błąd",
         "changelog_title": "Nowości",
         "changelog_missing": "Nie znaleziono pliku zmian",
@@ -1544,6 +1577,9 @@ TRANSLATIONS = {
     #  SRPSKI (Cyrillic)
     # ═══════════════════════════════════════════════════════════
     "sr": {
+        "update_ready": "Спремно за инсталацију",
+        "update_btn_ready": "Готово",
+        "update_no_url": "Нема везе за преузимање у version.json",
         "error_prefix": "Грешка",
         "changelog_title": "Шта је ново",
         "changelog_missing": "Датотека измена није пронађена",

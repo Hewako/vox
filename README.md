@@ -5,7 +5,7 @@
 **Local audio and video transcription for macOS.**
 No cloud, no subscriptions, no data leaks.
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/Hewako/vox/releases)
+[![Version](https://img.shields.io/badge/version-1.1.1-blue.svg)](https://github.com/Hewako/vox/releases)
 [![Platform](https://img.shields.io/badge/platform-macOS%2011%2B-lightgrey.svg)](https://github.com/Hewako/vox)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -108,6 +108,9 @@ The finished app ends up in `/Applications/Vox.app`.
 | Settings | `~/Library/Application Support/Vox/settings.json` |
 | History | `~/Library/Application Support/Vox/history.json` |
 | Logs | `~/Library/Logs/Vox.log` (rotation: 1 MB x 5 files) |
+
+If a transcription fails, Vox shows a short error code like `E021`.
+See [ERROR_CODES.md](ERROR_CODES.md) for the full reference and what to do about each one.
 
 The cache is cleaned automatically when it exceeds the cap. Use the
 **Clear cache** button in the footer to empty it on demand.
