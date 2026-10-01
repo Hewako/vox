@@ -2,10 +2,13 @@
 Error codes reference window.
 
 Shows the full list of error codes with localized descriptions.
-Opened from the About dialog via the "Errors" button.
+Each code is a clickable link that opens the matching section of
+ERROR_CODES.md on GitHub.
 """
 import logging
+import webbrowser
 import tkinter as tk
+from tkinter import ttk
 
 from config import (
     BG, BG_CARD, FG, FG_SUBTLE, ACCENT, BORDER,
@@ -19,6 +22,13 @@ logger = logging.getLogger(__name__)
 
 WIN_W = 640
 WIN_H = 720
+
+REPO_URL = "https://github.com/Hewako/vox"
+
+
+def _code_url(code: str) -> str:
+    """GitHub URL to the ERROR_CODES.md section for a code."""
+    return f"{REPO_URL}/blob/main/ERROR_CODES.md#{code.lower()}"
 
 
 def show_errors_window(root):
@@ -44,7 +54,7 @@ def show_errors_window(root):
     f_mono = get_font(font_size_key, "mono")
     f_btn = get_font(font_size_key, "btn")
 
-    # ── Header (top) ─────────────────────────────────────────
+    # ── Header ───────────────────────────────────────────────
     header = tk.Frame(win, bg=BG)
     header.pack(side="top", fill="x", padx=24, pady=(20, 4))
     tk.Label(header, text=t("errors_window_title"),
@@ -57,61 +67,90 @@ def show_errors_window(root):
              justify="left", wraplength=WIN_W - 60,
              anchor="w").pack(side="top", fill="x", padx=24, pady=(6, 12))
 
-    # ── Buttons: pack BEFORE body so they anchor to the bottom ──
+    # ── Bottom buttons ───────────────────────────────────────
     btn_row = tk.Frame(win, bg=BG)
     btn_row.pack(side="bottom", fill="x", padx=24, pady=(12, 20))
 
-    FlatButton(btn_row, t("errors_window_close"), win.destroy,
-               bg=BG, hover=BORDER, fg=FG,
-               padx=18, pady=10,
-               font=f_btn).pack(side="right")
-
-    # ── Body fills the remaining middle space ────────────────
+    # ── Body ─────────────────────────────────────────────────
     body = tk.Frame(win, bg=BG_CARD)
     body.pack(side="top", fill="both", expand=True, padx=24, pady=(0, 0))
 
-    # Canvas + inner frame = real scrollable area
     canvas = tk.Canvas(body, bg=BG_CARD, highlightthickness=0, bd=0)
-    scrollbar = tk.Scrollbar(body, orient="vertical",
-                             command=canvas.yview,
-                             bd=0, relief="flat",
-                             bg=BG_CARD, troughcolor=BG_CARD,
-                             activebackground=BORDER,
-                             highlightthickness=0, width=10)
+    canvas.configure(yscrollincrement=1)
+
+    scrollbar = ttk.Scrollbar(body, orient="vertical",
+                              command=canvas.yview)
     canvas.configure(yscrollcommand=scrollbar.set)
 
     scrollbar.pack(side="right", fill="y")
     canvas.pack(side="left", fill="both", expand=True)
 
     inner = tk.Frame(canvas, bg=BG_CARD)
-    inner_id = canvas.create_window((0, 0), window=inner, anchor="nw")
+    canvas.create_window((0, 0), window=inner, anchor="nw")
 
     def on_inner_configure(event=None):
         canvas.configure(scrollregion=canvas.bbox("all"))
 
-    def on_canvas_resize(event):
-        canvas.itemconfig(inner_id, width=event.width)
-
     inner.bind("<Configure>", on_inner_configure)
-    canvas.bind("<Configure>", on_canvas_resize)
 
     def on_mousewheel(event):
         if event.delta == 0:
             return
-        canvas.yview_scroll(-1 if event.delta > 0 else 1, "units")
+        first, last = canvas.yview()
+        if event.delta > 0 and first <= 0.0:
+            return
+        if event.delta < 0 and last >= 1.0:
+            return
+        canvas.yview_scroll(-event.delta, "units")
 
-    win.bind("<MouseWheel>", on_mousewheel)
+    canvas.bind_all("<MouseWheel>", on_mousewheel)
 
+    def close():
+        try:
+            canvas.unbind_all("<MouseWheel>")
+        except Exception:
+            pass
+        win.destroy()
+
+    FlatButton(btn_row, t("errors_window_close"), close,
+               bg=BG, hover=BORDER, fg=FG,
+               padx=18, pady=10,
+               font=f_btn).pack(side="right")
+
+    # ── Content list ─────────────────────────────────────────
     pad = tk.Frame(inner, bg=BG_CARD)
     pad.pack(fill="both", expand=True, padx=20, pady=16)
 
     wrap = WIN_W - 200
+
+    def make_code_link(parent, code):
+        url = _code_url(code)
+        lbl = tk.Label(parent, text=code,
+                       bg=BG_CARD, fg=ACCENT,
+                       font=(f_mono[0], f_mono[1], "underline"),
+                       width=6, anchor="nw",
+                       cursor="pointinghand")
+
+        def on_click(event):
+            webbrowser.open(url)
+            return "break"
+
+        def on_enter(event):
+            lbl.config(fg=FG)
+
+        def on_leave(event):
+            lbl.config(fg=ACCENT)
+
+        lbl.bind("<Button-1>", on_click)
+        lbl.bind("<Enter>", on_enter)
+        lbl.bind("<Leave>", on_leave)
+        return lbl
+
     for code in sorted(errors.CODES.keys()):
         row = tk.Frame(pad, bg=BG_CARD)
         row.pack(fill="x", pady=4)
 
-        tk.Label(row, text=code, bg=BG_CARD, fg=ACCENT,
-                 font=f_mono, width=6, anchor="nw").pack(side="left")
+        make_code_link(row, code).pack(side="left")
 
         tk.Label(row, text=errors.describe_localized(code),
                  bg=BG_CARD, fg=FG,
@@ -119,8 +158,8 @@ def show_errors_window(root):
                  justify="left", wraplength=wrap,
                  anchor="w").pack(side="left", fill="x", expand=True)
 
-    win.bind("<Escape>", lambda e: win.destroy())
-    win.protocol("WM_DELETE_WINDOW", win.destroy)
+    win.bind("<Escape>", lambda e: close())
+    win.protocol("WM_DELETE_WINDOW", close)
 
     win.lift()
     win.focus_force()
