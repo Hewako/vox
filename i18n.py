@@ -8,7 +8,7 @@ TRANSLATIONS = {
     #  ENGLISH
     # ═══════════════════════════════════════════════════════════
     "en": {
-        "update_ready": "Ready to install",
+        "update_ready": "Done",
         "update_btn_ready": "Done",
         "update_no_url": "No download URL in version.json",
         "error_prefix": "Error",
@@ -155,8 +155,11 @@ TRANSLATIONS = {
         "update_notes":        "What's new",
         "update_btn_download": "Download and update",
         "update_btn_later":    "Later",
+        "update_btn_close": "Close",
+        "update_btn_github": "Open on GitHub",
         "update_downloading":  "Downloading…",
         "update_installing":   "Installing…",
+        "update_installed": "Installed",
         "update_checking":     "Checking…",
         "update_up_to_date":   "You're on the latest version",
         "update_failed":       "Couldn't check for updates",
@@ -167,7 +170,7 @@ TRANSLATIONS = {
     #  РУССКИЙ
     # ═══════════════════════════════════════════════════════════
     "ru": {
-        "update_ready": "Готово к установке",
+        "update_ready": "Готово",
         "update_btn_ready": "Готово",
         "update_no_url": "Ссылка на скачивание отсутствует в version.json",
         "error_prefix": "Ошибка",
@@ -314,8 +317,11 @@ TRANSLATIONS = {
         "update_notes":        "Что нового",
         "update_btn_download": "Скачать и обновить",
         "update_btn_later":    "Позже",
+        "update_btn_close": "Закрыть",
+        "update_btn_github": "Открыть на GitHub",
         "update_downloading":  "Скачиваю…",
         "update_installing":   "Устанавливаю…",
+        "update_installed": "Установлено",
         "update_checking":     "Проверяю…",
         "update_up_to_date":   "У тебя последняя версия",
         "update_failed":       "Не получилось проверить обновления",
@@ -326,7 +332,7 @@ TRANSLATIONS = {
     #  ESPAÑOL
     # ═══════════════════════════════════════════════════════════
     "es": {
-        "update_ready": "Listo para instalar",
+        "update_ready": "Listo",
         "update_btn_ready": "Listo",
         "update_no_url": "Falta la URL de descarga en version.json",
         "error_prefix": "Error",
@@ -453,8 +459,12 @@ TRANSLATIONS = {
         "update_notes":        "Novedades",
         "update_btn_download": "Descargar y actualizar",
         "update_btn_later":    "Más tarde",
+        "update_btn_close": "Cerrar",
+        "update_btn_github": "Abrir en GitHub",
         "update_downloading":  "Descargando…",
         "update_installing":   "Instalando…",
+        "update_installed": "Instalado",
+        "update_installed": "Instalado",
         "update_checking":     "Comprobando…",
         "update_up_to_date":   "Tienes la última versión",
         "update_failed":       "No se pudo comprobar",
@@ -465,7 +475,7 @@ TRANSLATIONS = {
     #  中文
     # ═══════════════════════════════════════════════════════════
     "zh": {
-        "update_ready": "准备安装",
+        "update_ready": "完成",
         "update_btn_ready": "完成",
         "update_no_url": "version.json 中缺少下载链接",
         "error_prefix": "错误",
@@ -592,8 +602,11 @@ TRANSLATIONS = {
         "update_notes":        "更新内容",
         "update_btn_download": "下载并更新",
         "update_btn_later":    "稍后",
+        "update_btn_close": "关闭",
+        "update_btn_github": "在 GitHub 上打开",
         "update_downloading":  "下载中…",
         "update_installing":   "安装中…",
+        "update_installed": "已安装",
         "update_checking":     "检查中…",
         "update_up_to_date":   "已是最新版本",
         "update_failed":       "检查更新失败",
@@ -604,7 +617,7 @@ TRANSLATIONS = {
     #  हिन्दी
     # ═══════════════════════════════════════════════════════════
     "hi": {
-        "update_ready": "स्थापना के लिए तैयार",
+        "update_ready": "हो गया",
         "update_btn_ready": "हो गया",
         "update_no_url": "version.json में डाउनलोड लिंक नहीं है",
         "error_prefix": "त्रुटि",
@@ -731,8 +744,11 @@ TRANSLATIONS = {
         "update_notes":        "नया क्या है",
         "update_btn_download": "डाउनलोड करें और अपडेट करें",
         "update_btn_later":    "बाद में",
+        "update_btn_close": "बंद करें",
+        "update_btn_github": "GitHub पर खोलें",
         "update_downloading":  "डाउनलोड हो रहा है…",
         "update_installing":   "इंस्टॉल हो रहा है…",
+        "update_installed": "स्थापित",
         "update_checking":     "जाँच रहे हैं…",
         "update_up_to_date":   "आपके पास नवीनतम संस्करण है",
         "update_failed":       "अपडेट जाँच नहीं सकी",
@@ -743,7 +759,7 @@ TRANSLATIONS = {
     #  العربية
     # ═══════════════════════════════════════════════════════════
     "ar": {
-        "update_ready": "جاهز للتثبيت",
+        "update_ready": "تم",
         "update_btn_ready": "تم",
         "update_no_url": "لا يوجد رابط تنزيل في version.json",
         "error_prefix": "خطأ",
@@ -870,8 +886,11 @@ TRANSLATIONS = {
         "update_notes":        "الجديد",
         "update_btn_download": "تنزيل وتحديث",
         "update_btn_later":    "لاحقًا",
+        "update_btn_close": "إغلاق",
+        "update_btn_github": "فتح على GitHub",
         "update_downloading":  "جارٍ التنزيل…",
         "update_installing":   "جارٍ التثبيت…",
+        "update_installed": "تم التثبيت",
         "update_checking":     "جارٍ التحقق…",
         "update_up_to_date":   "لديك أحدث إصدار",
         "update_failed":       "تعذر التحقق من التحديثات",
@@ -882,7 +901,7 @@ TRANSLATIONS = {
     #  PORTUGUÊS
     # ═══════════════════════════════════════════════════════════
     "pt": {
-        "update_ready": "Pronto para instalar",
+        "update_ready": "Pronto",
         "update_btn_ready": "Pronto",
         "update_no_url": "Falta URL de download em version.json",
         "error_prefix": "Erro",
@@ -1009,6 +1028,8 @@ TRANSLATIONS = {
         "update_notes":        "Novidades",
         "update_btn_download": "Baixar e atualizar",
         "update_btn_later":    "Mais tarde",
+        "update_btn_close": "Fechar",
+        "update_btn_github": "Abrir no GitHub",
         "update_downloading":  "Baixando…",
         "update_installing":   "Instalando…",
         "update_checking":     "Verificando…",
@@ -1021,7 +1042,7 @@ TRANSLATIONS = {
     #  DEUTSCH
     # ═══════════════════════════════════════════════════════════
     "de": {
-        "update_ready": "Bereit zur Installation",
+        "update_ready": "Fertig",
         "update_btn_ready": "Fertig",
         "update_no_url": "Keine Download-URL in version.json",
         "error_prefix": "Fehler",
@@ -1148,8 +1169,11 @@ TRANSLATIONS = {
         "update_notes":        "Neuigkeiten",
         "update_btn_download": "Herunterladen und aktualisieren",
         "update_btn_later":    "Später",
+        "update_btn_close": "Schließen",
+        "update_btn_github": "Auf GitHub öffnen",
         "update_downloading":  "Wird heruntergeladen…",
         "update_installing":   "Wird installiert…",
+        "update_installed": "Installiert",
         "update_checking":     "Prüfe…",
         "update_up_to_date":   "Du hast die neueste Version",
         "update_failed":       "Update-Prüfung fehlgeschlagen",
@@ -1160,7 +1184,7 @@ TRANSLATIONS = {
     #  日本語
     # ═══════════════════════════════════════════════════════════
     "ja": {
-        "update_ready": "インストール準備完了",
+        "update_ready": "完了",
         "update_btn_ready": "完了",
         "update_no_url": "version.json にダウンロード URL がありません",
         "error_prefix": "エラー",
@@ -1287,8 +1311,11 @@ TRANSLATIONS = {
         "update_notes":        "新機能",
         "update_btn_download": "ダウンロードして更新",
         "update_btn_later":    "後で",
+        "update_btn_close": "閉じる",
+        "update_btn_github": "GitHub で開く",
         "update_downloading":  "ダウンロード中…",
         "update_installing":   "インストール中…",
+        "update_installed": "インストール済み",
         "update_checking":     "確認中…",
         "update_up_to_date":   "最新バージョンです",
         "update_failed":       "アップデートの確認に失敗",
@@ -1299,7 +1326,7 @@ TRANSLATIONS = {
     #  FRANÇAIS
     # ═══════════════════════════════════════════════════════════
     "fr": {
-        "update_ready": "Prêt à installer",
+        "update_ready": "Terminé",
         "update_btn_ready": "Terminé",
         "update_no_url": "Pas d'URL de téléchargement dans version.json",
         "error_prefix": "Erreur",
@@ -1426,8 +1453,11 @@ TRANSLATIONS = {
         "update_notes":        "Nouveautés",
         "update_btn_download": "Télécharger et mettre à jour",
         "update_btn_later":    "Plus tard",
+        "update_btn_close": "Fermer",
+        "update_btn_github": "Ouvrir sur GitHub",
         "update_downloading":  "Téléchargement…",
         "update_installing":   "Installation…",
+        "update_installed": "Installé",
         "update_checking":     "Vérification…",
         "update_up_to_date":   "Tu as la dernière version",
         "update_failed":       "Impossible de vérifier",
@@ -1438,7 +1468,7 @@ TRANSLATIONS = {
     #  POLSKI
     # ═══════════════════════════════════════════════════════════
     "pl": {
-        "update_ready": "Gotowe do instalacji",
+        "update_ready": "Gotowe",
         "update_btn_ready": "Gotowe",
         "update_no_url": "Brak adresu pobierania w version.json",
         "error_prefix": "Błąd",
@@ -1565,8 +1595,11 @@ TRANSLATIONS = {
         "update_notes":        "Co nowego",
         "update_btn_download": "Pobierz i zaktualizuj",
         "update_btn_later":    "Później",
+        "update_btn_close": "Zamknij",
+        "update_btn_github": "Otwórz na GitHub",
         "update_downloading":  "Pobieranie…",
         "update_installing":   "Instalowanie…",
+        "update_installed": "Zainstalowano",
         "update_checking":     "Sprawdzanie…",
         "update_up_to_date":   "Masz najnowszą wersję",
         "update_failed":       "Nie udało się sprawdzić aktualizacji",
@@ -1577,7 +1610,7 @@ TRANSLATIONS = {
     #  SRPSKI (Cyrillic)
     # ═══════════════════════════════════════════════════════════
     "sr": {
-        "update_ready": "Спремно за инсталацију",
+        "update_ready": "Готово",
         "update_btn_ready": "Готово",
         "update_no_url": "Нема везе за преузимање у version.json",
         "error_prefix": "Грешка",
@@ -1704,8 +1737,11 @@ TRANSLATIONS = {
         "update_notes":        "Шта је ново",
         "update_btn_download": "Преузми и ажурирај",
         "update_btn_later":    "Касније",
+        "update_btn_close": "Затвори",
+        "update_btn_github": "Отвори на GitHub",
         "update_downloading":  "Преузимање…",
         "update_installing":   "Инсталирање…",
+        "update_installed": "Инсталирано",
         "update_checking":     "Проверавам…",
         "update_up_to_date":   "Имаш најновију верзију",
         "update_failed":       "Није успела провера ажурирања",

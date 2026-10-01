@@ -5,6 +5,22 @@ All notable changes to Vox are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2026-10-01
+
+### Fixed
+- Update dialog crashed with `NameError` when any error occurred after
+  the download had finished.
+- "Open on GitHub" and "Close" buttons in the error state were
+  unresponsive because the widgets stayed disabled.
+
+### Changed
+- Update dialog now applies the update immediately after download;
+  the intermediate "Done" button has been removed.
+- On success the dialog shows "Installed" and Vox restarts
+  automatically with the new version.
+- On error the dialog stays open, shows the error code, and opens
+  the matching ERROR_CODES.md section on GitHub in the browser.
+
 ## [1.1.2] - 2026-10-01
 
 ### Added

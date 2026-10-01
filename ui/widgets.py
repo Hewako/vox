@@ -40,6 +40,21 @@ class FlatButton:
     def pack(self, **kw):
         self.lbl.pack(**kw)
 
+    def pack_forget(self):
+        self.lbl.pack_forget()
+
+    def grid(self, **kw):
+        self.lbl.grid(**kw)
+
+    def grid_forget(self):
+        self.lbl.grid_forget()
+
+    def place(self, **kw):
+        self.lbl.place(**kw)
+
+    def place_forget(self):
+        self.lbl.place_forget()
+
     def set_style(self, bg=None, hover=None, fg=None, text=None):
         if bg:
             self.bg = bg
