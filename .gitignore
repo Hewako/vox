@@ -38,3 +38,9 @@ ENV/
 
 # Vox local data
 *.log
+
+# Local notes and scratch
+notes/
+scratch/
+*.local
+.prompt_history
