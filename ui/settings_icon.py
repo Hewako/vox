@@ -3,14 +3,14 @@ Animated settings icon player.
 
 Loads the PNG frame sequence produced by
 `scripts/render_settings_icon.py` and plays it on demand on a Label.
-Used for the settings button in the main window.
 
-Frames are downscaled on load to a small display size suitable for
-the header. Playback is one-shot: play_once() runs the full sequence
-and returns to the idle frame.
+The frames folder is searched in several locations so the icon works
+both when the app runs from source and inside a bundled .app:
+  - <project>/assets/settings_anim                      (source tree)
+  - <Vox.app>/Contents/Resources/assets/settings_anim   (bundled)
 """
-
 import logging
+import sys
 from pathlib import Path
 
 from PIL import Image, ImageTk
@@ -19,10 +19,30 @@ logger = logging.getLogger(__name__)
 
 
 # ─── Config ──────────────────────────────────────────────────
-FRAME_DELAY_MS = 33  # ~30 fps, matches the source Lottie timeline
-DISPLAY_SIZE = 26  # icon size in the header, in pixels
+FRAME_DELAY_MS = 33     # ~30 fps, matches the source Lottie timeline
+DISPLAY_SIZE = 26       # icon size in the header, in pixels
 
-_ASSETS = Path(__file__).parent.parent / "assets" / "settings_anim"
+
+def _find_frames_dir():
+    """
+    Return the directory that holds frame_*.png, or None if not found.
+    Tries the source tree first, then the .app bundle.
+    """
+    candidates = [
+        Path(__file__).parent.parent / "assets" / "settings_anim",
+    ]
+
+    exe = str(sys.executable)
+    if ".app/Contents/MacOS/" in exe:
+        app_root = Path(exe.split(".app/Contents/MacOS/")[0] + ".app")
+        candidates.append(
+            app_root / "Contents" / "Resources" / "assets" / "settings_anim"
+        )
+
+    for p in candidates:
+        if p.exists() and any(p.glob("frame_*.png")):
+            return p
+    return None
 
 
 class SettingsIconPlayer:
@@ -31,8 +51,8 @@ class SettingsIconPlayer:
 
     Usage:
         player = SettingsIconPlayer(root, label_widget)
-        player.show_idle()               # show first frame
-        player.play_once(on_done=...)    # animate once, return to idle
+        player.show_idle()
+        player.play_once()
     """
 
     def __init__(self, root, label_widget, delay_ms=FRAME_DELAY_MS):
@@ -47,26 +67,23 @@ class SettingsIconPlayer:
 
     # ─── Loading ─────────────────────────────────────────────
     def _load_frames(self):
-        if not _ASSETS.exists():
-            logger.warning("settings_icon: frame folder not found at %s", _ASSETS)
+        folder = _find_frames_dir()
+        if folder is None:
+            logger.warning(
+                "settings_icon: frames folder not found (checked source "
+                "and bundle paths)")
             return
 
-        paths = sorted(_ASSETS.glob("frame_*.png"))
-        if not paths:
-            logger.warning("settings_icon: no frame_*.png files in %s", _ASSETS)
-            return
-
+        paths = sorted(folder.glob("frame_*.png"))
         try:
             for p in paths:
                 img = Image.open(p).convert("RGBA")
                 if img.width != DISPLAY_SIZE:
-                    img = img.resize((DISPLAY_SIZE, DISPLAY_SIZE), Image.Resampling.LANCZOS)
+                    img = img.resize((DISPLAY_SIZE, DISPLAY_SIZE),
+                                     Image.Resampling.LANCZOS)
                 self.frames.append(ImageTk.PhotoImage(img))
-            logger.info(
-                "settings_icon: loaded %d frames at %dpx",
-                len(self.frames),
-                DISPLAY_SIZE,
-            )
+            logger.info("settings_icon: loaded %d frames at %dpx from %s",
+                        len(self.frames), DISPLAY_SIZE, folder)
         except Exception as e:
             logger.error(f"settings_icon: failed to load frames: {e}")
             self.frames = []
@@ -76,17 +93,12 @@ class SettingsIconPlayer:
 
     # ─── Playback ────────────────────────────────────────────
     def show_idle(self):
-        """Show the first frame (icon at rest)."""
         if not self.frames:
             return
         self.idx = 0
         self._display(0)
 
     def play_once(self, on_done=None):
-        """
-        Play the whole sequence once and return to the idle frame.
-        Does nothing if the animation is already running.
-        """
         if not self.frames or self.after_id is not None:
             return
         self._on_done = on_done
@@ -97,7 +109,7 @@ class SettingsIconPlayer:
     def _display(self, index):
         img = self.frames[index]
         self.label.config(image=img)
-        self.label.image = img  # keep reference, GC safety
+        self.label.image = img
 
     def _tick_once(self):
         if not self.frames:

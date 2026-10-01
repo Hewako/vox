@@ -17,10 +17,15 @@ from pathlib import Path
 from setuptools import setup
 
 APP = ['main.py']
+
+import glob  # noqa: E402
+
 DATA_FILES = [
     'icon_data.py',
     'CHANGELOG.md',
     ('docs/changelog', ['docs/changelog/ru.md']),
+    ('assets', glob.glob('assets/*.png')),
+    ('assets/settings_anim', glob.glob('assets/settings_anim/*.png')),
 ]
 
 OPTIONS = {
