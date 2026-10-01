@@ -1,5 +1,5 @@
 {
-  "version": "1.1.1",
-  "download_url": "https://github.com/Hewako/vox/releases/download/v1.1.1/Vox.app.zip",
-  "notes": "Fixes two launch issues in 1.1.0: Pillow (PIL) was missing from the built app, and the settings gear icon was not bundled."
+  "version": "1.1.2",
+  "download_url": "",
+  "notes": "Error codes reference, localized error prefix, and improved update dialog."
 }

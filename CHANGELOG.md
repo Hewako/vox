@@ -5,6 +5,21 @@ All notable changes to Vox are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2026-10-01
+
+### Added
+- Error codes reference window: every failure in Vox has a short
+  code (E001-E099). The window lists all codes with localized
+  descriptions, and each code is a clickable link to its section
+  in ERROR_CODES.md on GitHub.
+- ERROR_CODES.md with per-code headings and what-to-do hints.
+- Localized "Error" prefix used in dialogs and the History window.
+
+### Changed
+- Update dialog now has three phases: Ready -> Downloading -> Done
+  -> Applying. After the file is downloaded, a single green "Done"
+  button appears; the file is applied only on that click.
+
 ## [1.1.1] - 2026-10-01
 
 ### Fixed
