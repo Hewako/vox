@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.3] - 2026-10-01
 
+> **Manual upgrade from 1.1.2.** Auto-update from 1.1.2 does not work
+> due to a bug fixed in 1.1.3. Please download Vox_1.1.3.app.zip manually.
+> From 1.1.3 onward, auto-update works correctly.
+
 ### Fixed
 - Update dialog crashed with `NameError` when any error occurred after
   the download had finished.
