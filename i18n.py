@@ -1632,6 +1632,18 @@ TRANSLATIONS = {
         "chk_cache":           "Користи кеш",
         "chk_srt":             "Сачувај као SRT (титлови)",
         "chk_sound":           "Звук по завршетку",
+        "chk_no_context": "Мање понављања",
+        "chk_no_context": "Mniej powtórzeń",
+        "chk_no_context": "Réduire les répétitions",
+        "chk_no_context": "繰り返しを減らす",
+        "chk_no_context": "Wiederholungen reduzieren",
+        "chk_no_context": "Reduzir repetições",
+        "chk_no_context": "تقليل التكرار",
+        "chk_no_context": "दोहराव कम करें",
+        "chk_no_context": "减少重复",
+        "chk_no_context": "Reducir repeticiones",
+        "chk_no_context": "Меньше повторов",
+        "chk_no_context": "Reduce repetitions",
         "sep_popular":         "──── Популарни ────",
         "sep_all":             "──── Сви језици ────",
         "lang_auto":           "Аутоматски",
@@ -1732,6 +1744,7 @@ def get_lang():
     return _current["lang"]
 
 from typing import Any
+
 
 def t(key: str, **kwargs: Any) -> str:
     """Translate a string with fallback to English."""

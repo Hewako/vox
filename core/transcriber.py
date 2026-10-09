@@ -1,21 +1,30 @@
 """Ядро транскрипции: ffmpeg + whisper-cli."""
+import logging
 import os
-import re
 import pty
+import re
+import subprocess
 import tempfile
 import threading
-import logging
-import subprocess
 from pathlib import Path
 
 from config import (
-    MODELS_DIR, CACHE_DIR, WHISPER_BIN, FFMPEG_BIN, VAD_MODEL,
+    CACHE_DIR,
+    FFMPEG_BIN,
+    MODELS_DIR,
+    VAD_MODEL,
+    WHISPER_BIN,
 )
 from core.state import (
-    CANCEL, register_proc, unregister_proc,
+    CANCEL,
+    register_proc,
+    unregister_proc,
 )
 from core.utils import (
-    get_duration, file_hash, atomic_write, DEVNULL,
+    DEVNULL,
+    atomic_write,
+    file_hash,
+    get_duration,
 )
 
 logger = logging.getLogger(__name__)
@@ -31,7 +40,7 @@ LANG_RE = re.compile(
 
 def transcribe_one(media, model_name, language, use_vad,
                    save_srt=False, on_progress=None, on_status=None,
-                   on_language=None, use_cache=True):
+                   on_language=None, use_cache=True, no_context=True):
     """
     Транскрибирует один файл. Возвращает Path к .txt.
 
@@ -52,7 +61,7 @@ def transcribe_one(media, model_name, language, use_vad,
 
     cache_file = None
     if use_cache:
-        key = f"{file_hash(media)}-{model_name}-{language}-{int(use_vad)}"
+        key = f"{file_hash(media)}-{model_name}-{language}-{int(use_vad)}-{int(no_context)}"
         cache_file = CACHE_DIR / f"{key}.txt"
         if cache_file.exists():
             on_status("Из кэша…")
@@ -85,12 +94,15 @@ def transcribe_one(media, model_name, language, use_vad,
             cmd.append("-osrt")
         if use_vad and VAD_MODEL.exists():
             cmd.extend(["--vad", "-vm", str(VAD_MODEL)])
+        if no_context:
+            cmd.extend(["-mc", "0"])
 
         logger.info(f"[{media.name}] whisper: {' '.join(cmd)}")
 
         master, slave = pty.openpty()
         proc = subprocess.Popen(cmd, stdout=slave, stderr=subprocess.PIPE)
         os.close(slave)
+        assert proc.stderr is not None
         register_proc(proc)
 
         stderr_chunks = []

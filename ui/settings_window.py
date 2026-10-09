@@ -108,6 +108,8 @@ def show_settings_window(root, on_apply=None):
     srt_var        = tk.BooleanVar(value=settings.get("srt", False))
     sound_var      = tk.BooleanVar(
         value=settings.get("sound_on_done", True))
+    no_context_var = tk.BooleanVar(
+        value=settings.get("no_context", True))
 
     # Track previous non-separator language value
     prev_lang = {"value": default_lang}
@@ -191,6 +193,8 @@ def show_settings_window(root, on_apply=None):
     cell_checkbox(8, 0, t("chk_srt"), srt_var)
     cell_checkbox(8, 1, t("chk_sound"), sound_var)
 
+    cell_checkbox(10, 0, t("chk_no_context"), no_context_var)
+
     # Buttons
     btn_row = tk.Frame(win, bg=BG)
     btn_row.pack(fill="x", padx=24, pady=(16, 20))
@@ -217,6 +221,7 @@ def show_settings_window(root, on_apply=None):
             "cache":          cache_var.get(),
             "srt":            srt_var.get(),
             "sound_on_done":  sound_var.get(),
+            "no_context":     no_context_var.get(),
             "workers":        workers_var.get(),
             "font_size":      new_font_key,
             "warn_long_files": settings.get("warn_long_files", True),

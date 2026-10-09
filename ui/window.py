@@ -537,6 +537,7 @@ def _build_ui(root):
 
         use_vad = live.get("vad", True)
         use_cache = live.get("cache", True)
+        no_context = live.get("no_context", True)
         save_srt = live.get("srt", False)
         play_on_done = live.get("sound_on_done", True)
         workers = int(live.get("workers", "1"))
@@ -579,7 +580,8 @@ def _build_ui(root):
                 on_status=lambda m: ui(lambda: status_var.set(
                     f"{Path(media).name} — {m}")),
                 on_language=on_detected_language,
-                use_cache=use_cache)
+                use_cache=use_cache,
+                no_context=no_context)
 
         def worker(media):
             try:

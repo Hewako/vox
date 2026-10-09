@@ -312,6 +312,7 @@ DEFAULT_SETTINGS = {
     "font_size": "medium",
     "sound_on_done": True,
     "warn_long_files": True,
+    "no_context": True,
 }
 
 # Font helpers
