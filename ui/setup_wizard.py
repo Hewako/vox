@@ -1,4 +1,5 @@
 """First-run wizard: downloading Whisper models."""
+import queue
 import ssl
 import time
 import threading
@@ -9,7 +10,7 @@ from pathlib import Path
 from urllib.request import urlopen, Request
 
 from config import (
-    MODELS_DIR, VAD_MODEL_NAME, BG, BG_CARD, BG_INPUT, FG, FG_SUBTLE,
+    __version__, MODELS_DIR, VAD_MODEL_NAME, BG, BG_CARD, BG_INPUT, FG, FG_SUBTLE,
     ACCENT, ACCENT_HOVER, BORDER, SUCCESS, DANGER,
 )
 from i18n import t
@@ -155,13 +156,35 @@ def show_wizard(root):
         result["ok"] = False
         win.destroy()
 
+    # Tk calls are only legal on the main thread. The wizard runs inside
+    # wait_window(), not mainloop(), so a worker calling win.after() raises
+    # "main thread is not in main loop". Workers post callables here instead
+    # and pump() runs them on the Tk thread.
+    events = queue.Queue()
+
+    def post(fn):
+        events.put(fn)
+
+    def pump():
+        while True:
+            try:
+                fn = events.get_nowait()
+            except queue.Empty:
+                break
+            try:
+                fn()
+            except Exception:
+                logger.exception("wizard: UI update failed")
+        if win.winfo_exists():
+            win.after(100, pump)
+
     def download_one(url, dest, label_key):
         dest = Path(dest)
         tmp = Path(str(dest) + ".part")
         label = t(label_key)
 
         try:
-            req = Request(url, headers={"User-Agent": "Vox/1.0"})
+            req = Request(url, headers={"User-Agent": f"Vox/{__version__}"})
             with urlopen(req, timeout=30,
                           context=_ssl_context()) as resp:
                 total = int(resp.headers.get("Content-Length") or 0)
@@ -169,6 +192,7 @@ def show_wizard(root):
                 chunk_size = 1024 * 256
 
                 start_time = time.time()
+                last_post = 0.0
 
                 with open(tmp, "wb") as f:
                     while True:
@@ -178,31 +202,32 @@ def show_wizard(root):
                         f.write(chunk)
                         downloaded += len(chunk)
 
+                        now = time.time()
+                        if now - last_post < 0.1:
+                            continue
+                        last_post = now
+
+                        mb_done = downloaded / (1024 * 1024)
+                        elapsed = now - start_time
+                        speed = mb_done / elapsed if elapsed > 0.5 else 0
+                        speed_str = (f"{speed:.1f} MB/s"
+                                     if speed > 0.01 else "— MB/s")
+
                         if total > 0:
-                            pct = downloaded / total * 100
-                            mb_done = downloaded / (1024 * 1024)
                             mb_total = total / (1024 * 1024)
-
-                            elapsed = time.time() - start_time
-                            if elapsed > 0.5:
-                                speed = mb_done / elapsed
-                                remaining_mb = mb_total - mb_done
-                                eta = (remaining_mb / speed
-                                       if speed > 0.01 else None)
-                            else:
-                                speed = 0
-                                eta = None
-
-                            speed_str = (f"{speed:.1f} MB/s"
-                                         if speed > 0.01 else "— MB/s")
-                            eta_str = _fmt_eta(eta)
-
-                            win.after(0, lambda p=pct, m=mb_done,
-                                      tt=mb_total, s=speed_str,
-                                      e=eta_str, l=label:
-                                      _update_progress(
-                                          prog_var, status_var, stats_var,
-                                          p, m, tt, s, e, l))
+                            eta = ((mb_total - mb_done) / speed
+                                   if speed > 0.01 else None)
+                            post(lambda p=downloaded / total * 100,
+                                 m=mb_done, tt=mb_total, s=speed_str,
+                                 e=_fmt_eta(eta), lb=label:
+                                 _update_progress(
+                                     prog_var, status_var, stats_var,
+                                     p, m, tt, s, e, lb))
+                        else:
+                            # Server sent no Content-Length: no percentage.
+                            post(lambda m=mb_done, s=speed_str, lb=label: (
+                                status_var.set(lb),
+                                stats_var.set(f"{_fmt_mb(m)}  ·  {s}")))
         except Exception as e:
             logger.error(f"Download {url} failed: {e}")
             if tmp.exists():
@@ -229,19 +254,18 @@ def show_wizard(root):
         skip_btn.config(state="disabled")
 
         def worker():
-            ok, err = download_one(
-                VAD_MODEL_URL, MODELS_DIR / VAD_MODEL_NAME,
-                "wizard_status_vad")
-            if not ok:
-                win.after(0, lambda: _fail(err))
-                return
-            ok, err = download_one(
-                MAIN_MODEL_URL, MODELS_DIR / MAIN_MODEL_NAME,
-                "wizard_status_main")
-            if not ok:
-                win.after(0, lambda: _fail(err))
-                return
-            win.after(0, _success)
+            try:
+                ok, err = download_one(
+                    VAD_MODEL_URL, MODELS_DIR / VAD_MODEL_NAME,
+                    "wizard_status_vad")
+                if ok:
+                    ok, err = download_one(
+                        MAIN_MODEL_URL, MODELS_DIR / MAIN_MODEL_NAME,
+                        "wizard_status_main")
+            except Exception as e:  # a silent thread death left the UI stuck
+                logger.exception("wizard: download worker crashed")
+                ok, err = False, str(e)
+            post(_success if ok else lambda: _fail(err))
 
         def _success():
             state["downloading"] = False
@@ -285,6 +309,7 @@ def show_wizard(root):
                padx=16, pady=10,
                font=("Helvetica", 11)).pack(side="right")
 
+    pump()
     win.lift()
     win.focus_force()
     win.attributes("-topmost", True)

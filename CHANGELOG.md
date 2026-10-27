@@ -5,6 +5,17 @@ All notable changes to Vox are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] - 2026-10-27
+
+### Fixed
+- First launch: the "Download and continue" button in the model wizard did
+  nothing. No progress, no error, and the buttons stayed disabled. The models
+  now download, with progress and an error message if something goes wrong.
+- Whisper could get stuck repeating one phrase on noisy audio. New option
+  "Reduce repetitions" in Settings, on by default.
+- Auto-update could leave an app that would not start after the swap
+  (lost executable permissions). The archive is now unpacked with `ditto`.
+
 ## [1.1.3] - 2026-10-01
 
 > **Manual upgrade from 1.1.2.** Auto-update from 1.1.2 does not work

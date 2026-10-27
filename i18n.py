@@ -1,4 +1,5 @@
 """Vox interface localization (i18n)."""
+from typing import Any
 
 _current = {"lang": "en"}
 
@@ -72,6 +73,7 @@ TRANSLATIONS = {
         "chk_cache":           "Use cache",
         "chk_srt":             "Save as SRT (subtitles)",
         "chk_sound":           "Sound on finish",
+        "chk_no_context": "Reduce repetitions",
         "sep_popular":         "──── Popular ────",
         "sep_all":             "──── All languages ────",
         "lang_auto":           "Auto",
@@ -232,6 +234,7 @@ TRANSLATIONS = {
         "chk_cache":           "Использовать кэш",
         "chk_srt":             "Сохранить как SRT (субтитры)",
         "chk_sound":           "Звук по завершении",
+        "chk_no_context": "Меньше повторов",
         "sep_popular":         "──── Популярные ────",
         "sep_all":             "──── Все языки ────",
         "lang_auto":           "Авто",
@@ -372,6 +375,7 @@ TRANSLATIONS = {
         "chk_cache":           "Usar caché",
         "chk_srt":             "Guardar como SRT (subtítulos)",
         "chk_sound":           "Sonido al terminar",
+        "chk_no_context": "Reducir repeticiones",
         "sep_popular":         "──── Populares ────",
         "sep_all":             "──── Todos los idiomas ────",
         "lang_auto":           "Auto",
@@ -457,7 +461,6 @@ TRANSLATIONS = {
         "update_downloading":  "Descargando…",
         "update_installing":   "Instalando…",
         "update_installed": "Instalado",
-        "update_installed": "Instalado",
         "update_checking":     "Comprobando…",
         "update_up_to_date":   "Tienes la última versión",
         "update_failed":       "No se pudo comprobar",
@@ -513,6 +516,7 @@ TRANSLATIONS = {
         "chk_cache":           "使用缓存",
         "chk_srt":             "保存为 SRT（字幕）",
         "chk_sound":           "完成时提示音",
+        "chk_no_context": "减少重复",
         "sep_popular":         "──── 热门 ────",
         "sep_all":             "──── 所有语言 ────",
         "lang_auto":           "自动",
@@ -653,6 +657,7 @@ TRANSLATIONS = {
         "chk_cache":           "कैश उपयोग करें",
         "chk_srt":             "SRT के रूप में सहेजें (उपशीर्षक)",
         "chk_sound":           "पूर्ण होने पर ध्वनि",
+        "chk_no_context": "दोहराव कम करें",
         "sep_popular":         "──── लोकप्रिय ────",
         "sep_all":             "──── सभी भाषाएँ ────",
         "lang_auto":           "स्वतः",
@@ -793,6 +798,7 @@ TRANSLATIONS = {
         "chk_cache":           "استخدام الذاكرة المؤقتة",
         "chk_srt":             "حفظ بصيغة SRT (ترجمات)",
         "chk_sound":           "صوت عند الانتهاء",
+        "chk_no_context": "تقليل التكرار",
         "sep_popular":         "──── شائعة ────",
         "sep_all":             "──── كل اللغات ────",
         "lang_auto":           "تلقائي",
@@ -933,6 +939,7 @@ TRANSLATIONS = {
         "chk_cache":           "Usar cache",
         "chk_srt":             "Salvar como SRT (legendas)",
         "chk_sound":           "Som ao terminar",
+        "chk_no_context": "Reduzir repetições",
         "sep_popular":         "──── Populares ────",
         "sep_all":             "──── Todos os idiomas ────",
         "lang_auto":           "Automático",
@@ -1072,6 +1079,7 @@ TRANSLATIONS = {
         "chk_cache":           "Cache verwenden",
         "chk_srt":             "Als SRT speichern (Untertitel)",
         "chk_sound":           "Ton bei Abschluss",
+        "chk_no_context": "Wiederholungen reduzieren",
         "sep_popular":         "──── Beliebt ────",
         "sep_all":             "──── Alle Sprachen ────",
         "lang_auto":           "Automatisch",
@@ -1212,6 +1220,7 @@ TRANSLATIONS = {
         "chk_cache":           "キャッシュを使用",
         "chk_srt":             "SRT として保存（字幕）",
         "chk_sound":           "完了時に音",
+        "chk_no_context": "繰り返しを減らす",
         "sep_popular":         "──── 人気 ────",
         "sep_all":             "──── すべての言語 ────",
         "lang_auto":           "自動",
@@ -1352,6 +1361,7 @@ TRANSLATIONS = {
         "chk_cache":           "Utiliser le cache",
         "chk_srt":             "Enregistrer en SRT (sous-titres)",
         "chk_sound":           "Son à la fin",
+        "chk_no_context": "Réduire les répétitions",
         "sep_popular":         "──── Populaires ────",
         "sep_all":             "──── Toutes les langues ────",
         "lang_auto":           "Auto",
@@ -1492,6 +1502,7 @@ TRANSLATIONS = {
         "chk_cache":           "Użyj pamięci podręcznej",
         "chk_srt":             "Zapisz jako SRT (napisy)",
         "chk_sound":           "Dźwięk po zakończeniu",
+        "chk_no_context": "Mniej powtórzeń",
         "sep_popular":         "──── Popularne ────",
         "sep_all":             "──── Wszystkie języki ────",
         "lang_auto":           "Automatycznie",
@@ -1633,17 +1644,6 @@ TRANSLATIONS = {
         "chk_srt":             "Сачувај као SRT (титлови)",
         "chk_sound":           "Звук по завршетку",
         "chk_no_context": "Мање понављања",
-        "chk_no_context": "Mniej powtórzeń",
-        "chk_no_context": "Réduire les répétitions",
-        "chk_no_context": "繰り返しを減らす",
-        "chk_no_context": "Wiederholungen reduzieren",
-        "chk_no_context": "Reduzir repetições",
-        "chk_no_context": "تقليل التكرار",
-        "chk_no_context": "दोहराव कम करें",
-        "chk_no_context": "减少重复",
-        "chk_no_context": "Reducir repeticiones",
-        "chk_no_context": "Меньше повторов",
-        "chk_no_context": "Reduce repetitions",
         "sep_popular":         "──── Популарни ────",
         "sep_all":             "──── Сви језици ────",
         "lang_auto":           "Аутоматски",
@@ -1742,9 +1742,6 @@ def set_lang(code):
 
 def get_lang():
     return _current["lang"]
-
-from typing import Any
-
 
 def t(key: str, **kwargs: Any) -> str:
     """Translate a string with fallback to English."""
