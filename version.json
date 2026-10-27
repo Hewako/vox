@@ -1,5 +1,5 @@
 {
-  "version": "1.1.4",
-  "download_url": "https://github.com/Hewako/vox/releases/download/v1.1.4/Vox_1.1.4.app.zip",
-  "notes": "Fixed the first-run model download; fewer repeated phrases on noisy audio; safer auto-update."
+  "version": "1.1.3",
+  "download_url": "https://github.com/Hewako/vox/releases/download/v1.1.3/Vox_1.1.3.app.zip",
+  "notes": "Fixed update dialog crash and button states; auto-apply after download."
 }
